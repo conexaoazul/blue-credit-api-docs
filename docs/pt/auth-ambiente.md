@@ -37,7 +37,7 @@ curl -X POST https://api.conexaoazul.com/api/v1/credit/query \
 ```
 
 ::: tip Chave de demonstração
-Use `DEMO-KEY-LINCSAT-2026` para testar sem custo — ela tem saldo limitado e é apenas para homologação. Solicite sua chave de produção em `ola@conexaoazul.com`.
+Solicite uma chave de homologação em `ola@conexaoazul.com` para testar sem afetar o saldo de produção. Não reutilize a mesma chave de homologação entre parceiros diferentes.
 :::
 
 ## 🌍 Ambientes
