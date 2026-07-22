@@ -6,7 +6,7 @@ const sharedFooter = {
 }
 
 export default defineConfig({
-  base: '/',
+  base: '/doc/',
   cleanUrls: true,
   lastUpdated: false,
   ignoreDeadLinks: true,
