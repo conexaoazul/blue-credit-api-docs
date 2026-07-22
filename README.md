@@ -25,7 +25,7 @@ Saída em `docs/.vitepress/dist`.
 
 ## Deploy
 
-O site é estático e pode ser publicado em qualquer host estático (Cloudflare Pages, Vercel, Netlify, GitHub Pages, S3).
+Publicado no Cloudflare Pages (`blue-credit-api-docs.pages.dev`) e roteado para `https://api.conexaoazul.com/doc`.
 
 - Build command: `pnpm run build`
 - Publish directory: `docs/.vitepress/dist`
