@@ -41,7 +41,7 @@ A chave `DEMO-KEY-LINCSAT-2026` é válida apenas para testes e tem saldo limita
 
 ## Integrações mais econômicas
 
-Essas integrações foram testadas e servem como amostra:
+A API tem 35 integrações ativas, cobrindo dados cadastrais, veiculares, protestos, dívidas/crédito, score e jurídico. As 5 mais baratas:
 
 | Código | Nome | Tipo de documento | Preço N1 |
 |---|---|---|---|
@@ -51,7 +51,7 @@ Essas integrações foram testadas e servem como amostra:
 | `cenprot_v2` | CENPROT V2 | `both` | R$ 0,66 |
 | `ic-cpf-completo` | IC CPF Completo | `both` | R$ 1,21 |
 
-Veja a lista completa e os schemas interativos em [API Reference](/pt/api-reference).
+Veja o catálogo completo agrupado por categoria, com todos os preços, em [Integrações, Categorias e Preços](/pt/navegacao-dados). Os schemas interativos (request/response) estão em [API Reference](/pt/api-reference).
 
 ## Fluxo típico
 
@@ -63,6 +63,15 @@ Veja a lista completa e os schemas interativos em [API Reference](/pt/api-refere
    - `data`: payload retornado pelo provider (estrutura varia)
    - `cost`: custo debitado em R$
    - `error`: mensagem de erro da integração, se houver
+
+## Próximos passos
+
+- [Autenticação e Ambientes](/pt/auth-ambiente) — header `HTTP-API-KEY`, ambientes de produção/homologação
+- [Integrações, Categorias e Preços](/pt/navegacao-dados) — catálogo completo das 35 integrações e níveis de preço
+- [Exemplos de Uso](/pt/exemplos-api-aux) — cURL, JavaScript, Python e PHP
+- [Respostas & Erros](/pt/respostas-erros) — códigos HTTP e formato de erro
+- [Limites e boas práticas](/pt/boas-praticas) — cobrança e recomendações de uso
+- [API Reference](/pt/api-reference) — schemas interativos (Scalar)
 
 ## Suporte
 

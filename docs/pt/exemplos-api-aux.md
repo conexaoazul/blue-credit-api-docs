@@ -1,184 +1,161 @@
 ---
-title: Exemplos & APIs Auxiliares
-description: Exemplos práticos de uso da API em diferentes linguagens de programação.
+title: Exemplos de Uso
+description: Exemplos práticos de consulta à Blue Credit API em diferentes linguagens de programação.
 ---
 
 ## 💡 Exemplos práticos
 
-Aqui estão exemplos de como fazer requisições para a API usando diferentes linguagens de programação:
+Os dois exemplos abaixo cobrem os únicos dois endpoints da API: listar integrações e executar uma consulta.
+
+### 1. Listar integrações disponíveis
+
+`GET /credit/integrations` não exige `HTTP-API-KEY` e retorna código, categoria, tipo de documento e preços de todas as integrações ativas.
 
 ::: code-group
 
-```javascript [JavaScript (axios)]
-import axios from 'axios';
+```bash [cURL]
+curl -s https://api.conexaoazul.com/api/v1/credit/integrations | python3 -m json.tool
+```
 
-const token = btoa('seuUsuario:suaSenha');
-
-const response = await axios.get('https://api.exemplo.com/v1', {
-  headers: {
-    Authorization: `Basic ${token}`,
-    'X-AGILE-CLIENT': 'EXTERNAL_APP',
-    'Accept-Version': '2020-02-26'
-  }
-});
-
-console.log(response.data);
+```javascript [JavaScript (fetch)]
+const response = await fetch('https://api.conexaoazul.com/api/v1/credit/integrations');
+const integrations = await response.json();
+console.log(integrations);
 ```
 
 ```python [Python (requests)]
 import requests
-from requests.auth import HTTPBasicAuth
 
-response = requests.get(
-  'https://api.exemplo.com/v1',
-  auth=HTTPBasicAuth('seuUsuario', 'suaSenha'),
-  headers={
-    'X-AGILE-CLIENT': 'EXTERNAL_APP',
-    'Accept-Version': '2020-02-26'
-  }
-)
-
-print(response.json())
-```
-
-```bash [cURL]
-curl -X GET "https://api.exemplo.com/v1" \
-  -H "Authorization: Basic $(echo -n 'seuUsuario:suaSenha' | base64)" \
-  -H "X-AGILE-CLIENT: EXTERNAL_APP" \
-  -H "Accept-Version: 2020-02-26"
+response = requests.get('https://api.conexaoazul.com/api/v1/credit/integrations')
+integrations = response.json()
+print(integrations)
 ```
 
 ```php [PHP]
 <?php
-$ch = curl_init();
-
-curl_setopt($ch, CURLOPT_URL, "https://api.exemplo.com/v1");
-curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-  "Authorization: Basic " . base64_encode("seuUsuario:suaSenha"),
-  "X-AGILE-CLIENT: EXTERNAL_APP",
-  "Accept-Version: 2020-02-26"
-));
-
-$response = curl_exec($ch);
-curl_close($ch);
-
-echo $response;
-?>
+$response = file_get_contents('https://api.conexaoazul.com/api/v1/credit/integrations');
+$integrations = json_decode($response, true);
+print_r($integrations);
 ```
 
 :::
 
-## 📸 API de Fotos de Pesquisa
+**Resposta (trecho):**
 
-A extração de fotos via API está disponível apenas mediante liberação específica.
+```json
+[
+  {
+    "code": "cnpj_completo",
+    "name": "CNPJ Completo",
+    "category": "cadastral",
+    "document_type": "cnpj",
+    "document_param_name": "cnpj",
+    "price_nivel_1": 0.105,
+    "price_nivel_2": 0.06
+  }
+]
+```
 
-Para acessar os endpoints de fotos de pesquisa, é necessário solicitar autorização ao nosso time de Suporte.
+### 2. Executar uma consulta
 
-::: tip Informação importante
-Este recurso não está disponível publicamente na documentação por padrão.
-
-Para solicitar acesso, [abra um ticket com o Suporte](https://help.exemplo.com/support/requests/new){target="_blank" rel="noopener"} informando o ambiente desejado para validação.
-:::
-
-## 🔧 Exemplos de Autenticação
-
-### Autenticação Básica
+`POST /credit/query` exige `HTTP-API-KEY` e o body `{ integration_code, document }`. O `integration_code` vem do endpoint acima; `document` é o CPF, CNPJ ou placa a consultar.
 
 ::: code-group
 
-```javascript [JavaScript]
-// Usando fetch nativo
-const credentials = btoa('usuario:senha');
-const response = await fetch('https://api.exemplo.com/v1', {
-  headers: {
-    'Authorization': `Basic ${credentials}`,
-    'X-AGILE-CLIENT': 'EXTERNAL_APP',
-    'Accept-Version': '2020-02-26'
-  }
-});
+```bash [cURL]
+curl -s -X POST https://api.conexaoazul.com/api/v1/credit/query \
+  -H "Content-Type: application/json" \
+  -H "HTTP-API-KEY: SUA_CHAVE" \
+  -d '{"integration_code":"cnpj_completo","document":"11222333000181"}' | python3 -m json.tool
 ```
 
-```python [Python]
-import requests
-import base64
+```javascript [JavaScript (fetch)]
+const response = await fetch('https://api.conexaoazul.com/api/v1/credit/query', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'HTTP-API-KEY': 'SUA_CHAVE'
+  },
+  body: JSON.stringify({
+    integration_code: 'cnpj_completo',
+    document: '11222333000181'
+  })
+});
 
-credentials = base64.b64encode('usuario:senha'.encode()).decode()
-headers = {
-    'Authorization': f'Basic {credentials}',
-    'X-AGILE-CLIENT': 'EXTERNAL_APP',
-    'Accept-Version': '2020-02-26'
+const result = await response.json();
+if (result.status === 'success') {
+  console.log(result.data, `custo: R$ ${result.cost}`);
+} else {
+  console.error(result.error);
 }
+```
 
-response = requests.get('https://api.exemplo.com/v1', headers=headers)
+```python [Python (requests)]
+import requests
+
+response = requests.post(
+    'https://api.conexaoazul.com/api/v1/credit/query',
+    headers={'HTTP-API-KEY': 'SUA_CHAVE'},
+    json={'integration_code': 'cnpj_completo', 'document': '11222333000181'}
+)
+
+result = response.json()
+if result['status'] == 'success':
+    print(result['data'], f"custo: R$ {result['cost']}")
+else:
+    print('erro:', result['error'])
+```
+
+```php [PHP]
+<?php
+$ch = curl_init('https://api.conexaoazul.com/api/v1/credit/query');
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    'Content-Type: application/json',
+    'HTTP-API-KEY: SUA_CHAVE'
+]);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+    'integration_code' => 'cnpj_completo',
+    'document' => '11222333000181'
+]));
+
+$response = json_decode(curl_exec($ch), true);
+curl_close($ch);
+
+echo $response['status'] === 'success' ? print_r($response['data'], true) : $response['error'];
 ```
 
 :::
 
-### Headers Obrigatórios
+**Resposta de sucesso:**
 
-<script setup>
-
-const headersTable = [
-  {
-    key: 'Authorization',
-    description: '<code>Basic &lt;token&gt;</code> — Token de autenticação em Base64',
-    color: 'blue'
+```json
+{
+  "status": "success",
+  "data": {
+    "status": "sucesso",
+    "dados": {
+      "cpf": "00000000191",
+      "nome": "RECEITA FEDERAL PARA USO DO SISTEMA"
+    }
   },
-  {
-    key: 'X-AGILE-CLIENT',
-    description: '<code>EXTERNAL_APP</code> — Identificador do cliente',
-    color: 'purple'
-  },
-  {
-    key: 'Accept-Version',
-    description: '<code>2020-02-26</code> — Versão da API',
-    color: 'red'
-  }
-]
-</script>
+  "aux": [],
+  "error": null,
+  "cost": 0.165
+}
+```
 
-### Todos os endpoints da API requerem os seguintes headers
+::: tip Estrutura de `data` varia por integração
+O objeto `data` é o retorno bruto do provider por trás de cada integração — a estrutura muda conforme a base consultada. Consulte o schema `QueryResponse` em [API Reference](/pt/api-reference) para o contrato garantido (`status`, `cost`, `error`), e trate `data` como semiestruturado no seu parser.
+:::
 
-<ApiCard
-  title="request.headers"
-  :items="headersTable"
-/>
+## 🔧 Boas práticas nos exemplos
 
 ::: warning Atenção
-Nunca compartilhe suas credenciais de acesso ou as inclua em código que será versionado.
-Sempre use variáveis de ambiente para armazenar informações sensíveis.
+- Nunca compartilhe sua `HTTP-API-KEY` em código versionado, logs ou mensagens de erro visíveis ao cliente final.
+- Armazene a chave em variáveis de ambiente (`.env`, secrets do CI/CD, etc.).
+- Sempre verifique o campo `status` da resposta antes de processar `data` — uma consulta pode retornar HTTP 200 com `status: "error"` quando o provider não encontra o documento.
 :::
 
-## 📊 Exemplos de Resposta
-
-### Resposta de Sucesso
-
-```json
-{
-  "success": true,
-  "data": {
-    "id": 123,
-    "name": "Exemplo de Dados",
-    "created_at": "2024-01-15T10:30:00Z"
-  },
-  "message": "Operação realizada com sucesso"
-}
-```
-
-### Resposta de Erro
-
-```json
-{
-  "success": false,
-  "error": {
-    "code": "AUTHENTICATION_FAILED",
-    "message": "Credenciais inválidas",
-    "details": "Usuário ou senha incorretos"
-  }
-}
-```
-
-::: tip Dica
-Sempre verifique o campo `success` na resposta antes de processar os dados.
-Em caso de erro, o campo `error` conterá informações detalhadas sobre o problema.
-:::
+Para o tratamento completo de erros HTTP (401, 402, 404, 422, 500), veja [Respostas & Erros](/pt/respostas-erros).
