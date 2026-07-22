@@ -1,15 +1,15 @@
 {
-  "name": "api-docs-starter",
-  "version": "1.0.0",
-  "description": "A modern API documentation starter template built with VitePress, Vue 3, TypeScript, and TailwindCSS. Features interactive API reference with Scalar, multi-language support, and responsive design.",
+  "name": "blue-credit-api-docs",
+  "version": "19.0.1.0.0",
+  "description": "Interactive documentation for Blue Credit API (api.conexaoazul.com) built with VitePress and Scalar.",
   "author": {
-    "name": "Rafael Teixeira",
-    "email": "teixeirac.rafael@gmail.com",
-    "url": "https://github.com/rafactx"
+    "name": "Conexão Azul Digital",
+    "email": "ola@conexaoazul.com",
+    "url": "https://github.com/conexaoazul"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/rafactx/api-docs-starter.git"
+    "url": "https://github.com/conexaoazul/blue-credit-api-docs.git"
   },
   "license": "MIT",
   "keywords": [
