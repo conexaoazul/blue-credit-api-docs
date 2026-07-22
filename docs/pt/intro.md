@@ -1,63 +1,69 @@
 ---
 title: Visão Geral
-description: Boas práticas para se conectar com segurança à API.
+description: Documentação da Blue Credit API — consultas cadastrais, veiculares, protestos, score e dívidas.
 ---
 
-## 🚀 Introdução
+# 🚀 Blue Credit API
 
-A API permite integrar facilmente sistemas externos, automatizando processos e simplificando suas operações.
-Desenvolvida seguindo os princípios REST, nossa API é intuitiva, fácil de usar, e totalmente compatível com clientes HTTP comuns, sem necessidade de desenvolvimento especial.
+A **Blue Credit API** é uma API REST hospedada no Odoo 19 da Conexão Azul que permite consultar dezenas de bases de dados (cadastrais, veiculares, protestos, score, dívidas etc.) com pré-pagamento por consulta.
+
+Cada requisição debita automaticamente o saldo do parceiro conforme o preço da integração escolhida.
 
 ---
 
-A URL base para todas as requisições é:
+## URL Base
 
-::: code-group
-
-```bash [URL Base]
-https://api.exemplo.com/v1
+```bash
+https://api.conexaoazul.com/api/v1
 ```
 
-```javascript [Exemplo básico]
-const baseUrl = 'https://api.exemplo.com/v1';
-const headers = {
-  'Authorization': 'Basic ' + btoa('usuario:senha'),
-  'X-AGILE-CLIENT': 'EXTERNAL_APP',
-  'Accept-Version': '2020-02-26'
-};
+## Autenticação
 
-fetch(baseUrl, { headers })
-  .then(response => response.json())
-  .then(data => console.log(data));
+Todas as requisições exigem o header `HTTP-API-KEY`:
+
+```bash
+curl -X POST https://api.conexaoazul.com/api/v1/credit/query \
+  -H "HTTP-API-KEY: DEMO-KEY-LINCSAT-2026" \
+  -H "Content-Type: application/json" \
+  -d '{"integration_code":"cnpj_completo","document":"11222333000181"}'
 ```
 
-```python [Exemplo básico]
-import requests
-
-base_url = 'https://api.exemplo.com/v1'
-headers = {
-    'Authorization': 'Basic ' + base64.b64encode('usuario:senha'.encode()).decode(),
-    'X-AGILE-CLIENT': 'EXTERNAL_APP',
-    'Accept-Version': '2020-02-26'
-}
-
-response = requests.get(base_url, headers=headers)
-data = response.json()
-print(data)
-```
-
+::: tip Demo key
+A chave `DEMO-KEY-LINCSAT-2026` é válida apenas para testes e tem saldo limitado. Solicite sua chave de produção em `ola@conexaoazul.com`.
 :::
 
-::: tip Dica
-Nunca faça testes diretamente no ambiente de produção.
+## Endpoints
 
-Crie um ambiente específico (sandbox) com usuários exclusivos para testes.
+| Método | Endpoint | Descrição |
+|---|---|---|
+| GET | `/credit/integrations` | Lista todas as integrações disponíveis, preços e tipo de documento |
+| POST | `/credit/query` | Executa uma consulta e retorna os dados do provider + custo |
 
-Se precisar de ajuda para configurar, [abra um ticket com o Suporte](https://help.exemplo.com/support/requests/new){target="_blank" rel="noopener"}.
-:::
+## Integrações mais econômicas
 
-## 📚 Sobre esta documentação
+Essas integrações foram testadas e servem como amostra:
 
-Esta documentação é mantida em sincronia com a versão mais recente da API.<br />
-No entanto, pequenas diferenças podem ocorrer caso sua instância esteja em uma versão anterior.
-Sempre que possível, verifique o cabeçalho de versão (Accept-Version) ou consulte o suporte em caso de dúvidas.
+| Código | Nome | Tipo de documento | Preço N1 |
+|---|---|---|---|
+| `cnpj_completo` | CNPJ Completo | `cnpj` | R$ 0,105 |
+| `cpf_simples` | CPF Simples | `cpf` | R$ 0,165 |
+| `fipe` | Tabela FIPE | `placa` | R$ 0,18 |
+| `cenprot_v2` | CENPROT V2 | `both` | R$ 0,66 |
+| `ic-cpf-completo` | IC CPF Completo | `both` | R$ 1,21 |
+
+Veja a lista completa e os schemas interativos em [API Reference](/pt/api-reference).
+
+## Fluxo típico
+
+1. **Liste integrações**: `GET /credit/integrations`
+2. **Escolha o código** e monte o payload `{integration_code, document}`
+3. **Execute a consulta**: `POST /credit/query`
+4. **Leia o response**:
+   - `status`: `success` ou `error`
+   - `data`: payload retornado pelo provider (estrutura varia)
+   - `cost`: custo debitado em R$
+   - `error`: mensagem de erro da integração, se houver
+
+## Suporte
+
+Dúvidas ou solicitação de chave de produção: `ola@conexaoazul.com`

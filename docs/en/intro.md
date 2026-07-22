@@ -1,63 +1,69 @@
 ---
 title: Overview
-description: Best practices for securely connecting to the API.
+description: Blue Credit API REST documentation — registry, vehicle, protest, credit score and debt queries.
 ---
 
-## 🚀 Introduction
+# 🚀 Blue Credit API
 
-The API allows you to easily integrate external systems, automating processes and simplifying your operations.
-Developed following REST principles, our API is intuitive, easy to use, and fully compatible with common HTTP clients, with no need for special development.
+**Blue Credit API** is a REST API hosted on Conexão Azul's Odoo 19 platform. It lets you query dozens of Brazilian data sources (registry, vehicle, protests, credit score, debts and more) using a prepaid-per-query model.
+
+Each request automatically debits the partner's balance according to the chosen integration price.
 
 ---
 
-The base URL for all requests is:
+## Base URL
 
-::: code-group
-
-```bash [Base URL]
-https://api.exemplo.com/v1
+```bash
+https://api.conexaoazul.com/api/v1
 ```
 
-```javascript [Basic example]
-const baseUrl = 'https://api.exemplo.com/v1';
-const headers = {
-  'Authorization': 'Basic ' + btoa('usuario:senha'),
-  'X-AGILE-CLIENT': 'EXTERNAL_APP',
-  'Accept-Version': '2020-02-26'
-};
+## Authentication
 
-fetch(baseUrl, { headers })
-  .then(response => response.json())
-  .then(data => console.log(data));
+Every request must include the `HTTP-API-KEY` header:
+
+```bash
+curl -X POST https://api.conexaoazul.com/api/v1/credit/query \
+  -H "HTTP-API-KEY: DEMO-KEY-LINCSAT-2026" \
+  -H "Content-Type: application/json" \
+  -d '{"integration_code":"cnpj_completo","document":"11222333000181"}'
 ```
 
-```python [Basic example]
-import requests
-
-base_url = 'https://api.exemplo.com/v1'
-headers = {
-    'Authorization': 'Basic ' + base64.b64encode('usuario:senha'.encode()).decode(),
-    'X-AGILE-CLIENT': 'EXTERNAL_APP',
-    'Accept-Version': '2020-02-26'
-}
-
-response = requests.get(base_url, headers=headers)
-data = response.json()
-print(data)
-```
-
+::: tip Demo key
+`DEMO-KEY-LINCSAT-2026` is for testing only and has limited balance. Request a production key at `ola@conexaoazul.com`.
 :::
 
-::: tip Tip
-Never test directly in the production environment.
+## Endpoints
 
-Create a specific environment (sandbox) with exclusive users for testing.
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/credit/integrations` | Lists all available integrations, prices and document types |
+| POST | `/credit/query` | Runs a query and returns provider data + cost |
 
-If you need help setting up, [open a ticket with Support](https://help.exemplo.com/support/requests/new){target="_blank" rel="noopener"}.
-:::
+## Cheapest sample integrations
 
-## 📚 About this documentation
+These integrations were tested and work as samples:
 
-This documentation is kept in sync with the latest version of the API.<br />
-However, small differences may occur if your instance is on an earlier version.
-Whenever possible, check the version header (Accept-Version) or consult support if in doubt.
+| Code | Name | Document type | Price N1 |
+|---|---|---|---|
+| `cnpj_completo` | Complete CNPJ | `cnpj` | R$ 0.105 |
+| `cpf_simples` | Simple CPF | `cpf` | R$ 0.165 |
+| `fipe` | FIPE table | `placa` | R$ 0.18 |
+| `cenprot_v2` | CENPROT V2 | `both` | R$ 0.66 |
+| `ic-cpf-completo` | IC Complete CPF | `both` | R$ 1.21 |
+
+See the full list and interactive schemas in the [API Reference](/en/api-reference).
+
+## Typical flow
+
+1. **List integrations**: `GET /credit/integrations`
+2. **Pick the code** and build the payload `{integration_code, document}`
+3. **Run the query**: `POST /credit/query`
+4. **Read the response**:
+   - `status`: `success` or `error`
+   - `data`: provider payload (structure varies)
+   - `cost`: debited amount in BRL
+   - `error`: integration error message, if any
+
+## Support
+
+Questions or production key request: `ola@conexaoazul.com`

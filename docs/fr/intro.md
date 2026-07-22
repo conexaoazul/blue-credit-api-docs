@@ -1,63 +1,38 @@
 ---
-title: Vue d'ensemble
-description: Bonnes pratiques pour se connecter en toute sécurité à l'API.
+title: Aperçu
+description: Documentation de l API REST Blue Credit API.
 ---
 
-## 🚀 Introduction
+# 🚀 Blue Credit API
 
-L'API permet d'intégrer facilement des systèmes externes, d'automatiser les processus et de simplifier vos opérations.
-Développée en suivant les principes REST, notre API est intuitive, facile à utiliser et entièrement compatible avec les clients HTTP courants, sans nécessiter de développement spécial.
+**Blue Credit API** fournit un accès programmatique à des dizaines de bases de données brésiliennes (véhicules, registre, protestations, score, dettes) via une API REST avec paiement à la consultation.
 
----
+## URL de base
 
-L'URL de base pour toutes les requêtes est :
-
-::: code-group
-
-```bash [URL de base]
-https://api.exemplo.com/v1
+```bash
+https://api.conexaoazul.com/api/v1
 ```
 
-```javascript [Exemple de base]
-const baseUrl = 'https://api.exemplo.com/v1';
-const headers = {
-  'Authorization': 'Basic ' + btoa('usuario:senha'),
-  'X-AGILE-CLIENT': 'EXTERNAL_APP',
-  'Accept-Version': '2020-02-26'
-};
+## Authentification
 
-fetch(baseUrl, { headers })
-  .then(response => response.json())
-  .then(data => console.log(data));
+Incluez le header `HTTP-API-KEY`:
+
+```bash
+curl -X POST https://api.conexaoazul.com/api/v1/credit/query \
+  -H "HTTP-API-KEY: DEMO-KEY-LINCSAT-2026" \
+  -H "Content-Type: application/json" \
+  -d '{"integration_code":"cnpj_completo","document":"11222333000181"}'
 ```
 
-```python [Exemple de base]
-import requests
+## Endpoints
 
-base_url = 'https://api.exemplo.com/v1'
-headers = {
-    'Authorization': 'Basic ' + base64.b64encode('usuario:senha'.encode()).decode(),
-    'X-AGILE-CLIENT': 'EXTERNAL_APP',
-    'Accept-Version': '2020-02-26'
-}
+| Méthode | Endpoint | Description |
+|---|---|---|
+| GET | `/credit/integrations` | Liste les intégrations disponibles |
+| POST | `/credit/query` | Exécute une requête |
 
-response = requests.get(base_url, headers=headers)
-data = response.json()
-print(data)
-```
+Voir la [Référence API](/fr/api-reference) pour les schemas complets.
 
-:::
+## Support
 
-::: tip Conseil
-Ne testez jamais directement en environnement de production.
-
-Créez un environnement spécifique (sandbox) avec des utilisateurs exclusifs pour les tests.
-
-Si vous avez besoin d'aide pour configurer, [ouvrez un ticket avec le Support](https://help.exemplo.com/support/requests/new){target="_blank" rel="noopener"}.
-:::
-
-## 📚 À propos de cette documentation
-
-Cette documentation est maintenue en synchronisation avec la version la plus récente de l'API.<br />
-Cependant, de petites différences peuvent survenir si votre instance est sur une version antérieure.
-Dans la mesure du possible, vérifiez l'en-tête de version (Accept-Version) ou consultez le support en cas de doute.
+`ola@conexaoazul.com`

@@ -1,63 +1,38 @@
 ---
 title: Visión General
-description: Buenas prácticas para conectarse con seguridad a la API.
+description: Documentación de la API REST Blue Credit API.
 ---
 
-## 🚀 Introducción
+# 🚀 Blue Credit API
 
-La API permite integrar fácilmente sistemas externos, automatizando procesos y simplificando tus operaciones.
-Desarrollada siguiendo los principios REST, nuestra API es intuitiva, fácil de usar, y totalmente compatible con clientes HTTP comunes, sin necesidad de desarrollo especial.
+**Blue Credit API** permite consultar bases de datos brasileñas (vehiculares, cadastrales, protestos, score y más) mediante una API REST con prepago por consulta.
 
----
+## URL Base
 
-La URL base para todas las peticiones es:
-
-::: code-group
-
-```bash [URL Base]
-https://api.exemplo.com/v1
+```bash
+https://api.conexaoazul.com/api/v1
 ```
 
-```javascript [Ejemplo básico]
-const baseUrl = 'https://api.exemplo.com/v1';
-const headers = {
-  'Authorization': 'Basic ' + btoa('usuario:senha'),
-  'X-AGILE-CLIENT': 'EXTERNAL_APP',
-  'Accept-Version': '2020-02-26'
-};
+## Autenticación
 
-fetch(baseUrl, { headers })
-  .then(response => response.json())
-  .then(data => console.log(data));
+Incluya el header `HTTP-API-KEY`:
+
+```bash
+curl -X POST https://api.conexaoazul.com/api/v1/credit/query \
+  -H "HTTP-API-KEY: DEMO-KEY-LINCSAT-2026" \
+  -H "Content-Type: application/json" \
+  -d '{"integration_code":"cnpj_completo","document":"11222333000181"}'
 ```
 
-```python [Ejemplo básico]
-import requests
+## Endpoints
 
-base_url = 'https://api.exemplo.com/v1'
-headers = {
-    'Authorization': 'Basic ' + base64.b64encode('usuario:senha'.encode()).decode(),
-    'X-AGILE-CLIENT': 'EXTERNAL_APP',
-    'Accept-Version': '2020-02-26'
-}
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/credit/integrations` | Lista las integraciones disponibles |
+| POST | `/credit/query` | Ejecuta una consulta |
 
-response = requests.get(base_url, headers=headers)
-data = response.json()
-print(data)
-```
+Consulte la [Referencia API](/es/api-reference) para los schemas completos.
 
-:::
+## Soporte
 
-::: tip Consejo
-Nunca hagas pruebas directamente en el entorno de producción.
-
-Crea un entorno específico (sandbox) con usuarios exclusivos para pruebas.
-
-Si necesitas ayuda para configurar, [abre un ticket con el Soporte](https://help.exemplo.com/support/requests/new){target="_blank" rel="noopener"}.
-:::
-
-## 📚 Sobre esta documentación
-
-Esta documentación se mantiene en sincronía con la versión más reciente de la API.<br />
-Sin embargo, pequeñas diferencias pueden ocurrir si tu instancia está en una versión anterior.
-Siempre que sea posible, verifica el encabezado de versión (Accept-Version) o consulta el soporte en caso de dudas.
+`ola@conexaoazul.com`

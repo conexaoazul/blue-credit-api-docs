@@ -1,321 +1,213 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "API Documentation Starter",
-    "description": "A modern API documentation template showcasing REST API best practices with interactive examples",
-    "version": "1.0.0",
-    "termsOfService": "https://example.com/terms",
+    "title": "Blue Credit API",
+    "description": "API REST da Blue Credit API para consultas cadastrais, veiculares, protestos, score e dívidas. Use HTTP-API-KEY no header para autenticação. Cada consulta debita o saldo pré-pago conforme o preço da integração.",
+    "version": "19.0.1.0.0",
     "contact": {
-      "name": "API Support",
-      "email": "support@example.com",
-      "url": "https://example.com/support"
+      "name": "Conexão Azul - Suporte Blue Credit",
+      "email": "ola@conexaoazul.com",
+      "url": "https://conexaoazul.com"
     },
     "license": {
-      "name": "MIT",
-      "url": "https://opensource.org/licenses/MIT"
+      "name": "Proprietary",
+      "url": "https://conexaoazul.com"
     }
   },
   "servers": [
     {
-      "url": "https://api.example.com/v1",
-      "description": "Production server"
+      "url": "https://api.conexaoazul.com/api/v1",
+      "description": "Produção (consultas)"
     },
     {
-      "url": "https://staging-api.example.com/v1",
-      "description": "Staging server"
-    },
-    {
-      "url": "http://localhost:3000/v1",
-      "description": "Development server"
+      "url": "https://api-hml.conexaoazul.com/api/v1",
+      "description": "Homologação"
     }
   ],
   "security": [
     {
-      "BearerAuth": []
+      "ApiKeyAuth": []
     }
   ],
   "paths": {
-    "/users": {
+    "/credit/integrations": {
       "get": {
-        "summary": "List users",
-        "description": "Retrieve a paginated list of users with filtering and sorting options",
-        "tags": ["Users"],
-        "parameters": [
-          {
-            "name": "page",
-            "in": "query",
-            "description": "Page number for pagination",
-            "schema": {
-              "type": "integer",
-              "default": 1,
-              "minimum": 1
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "Number of items per page",
-            "schema": {
-              "type": "integer",
-              "default": 20,
-              "minimum": 1,
-              "maximum": 100
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "description": "Sort field and direction",
-            "schema": {
-              "type": "string",
-              "enum": ["name:asc", "name:desc", "created_at:asc", "created_at:desc"],
-              "default": "created_at:desc"
-            }
-          },
-          {
-            "name": "search",
-            "in": "query",
-            "description": "Search term to filter users",
-            "schema": {
-              "type": "string",
-              "maxLength": 100
-            }
-          }
+        "summary": "Listar integrações disponíveis",
+        "description": "Retorna todas as integrações de consulta disponíveis, com categoria, tipo de documento aceito e preços (nível 1 e 2).",
+        "tags": [
+          "Integrações"
         ],
+        "operationId": "listIntegrations",
         "responses": {
           "200": {
-            "description": "Successful response",
+            "description": "Lista de integrações",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/User"
-                      }
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Integration"
+                  },
+                  "example": [
+                    {
+                      "code": "cnpj_completo",
+                      "name": "CNPJ Completo",
+                      "category": "cadastral",
+                      "document_type": "cnpj",
+                      "document_param_name": "cnpj",
+                      "price_nivel_1": 0.105,
+                      "price_nivel_2": 0.06
                     },
-                    "pagination": {
-                      "$ref": "#/components/schemas/Pagination"
+                    {
+                      "code": "cpf_simples",
+                      "name": "CPF Simples",
+                      "category": "cadastral",
+                      "document_type": "cpf",
+                      "document_param_name": "cpf",
+                      "price_nivel_1": 0.165,
+                      "price_nivel_2": 0.09
                     },
-                    "links": {
-                      "$ref": "#/components/schemas/Links"
+                    {
+                      "code": "fipe",
+                      "name": "Fipe",
+                      "category": "veicular",
+                      "document_type": "placa",
+                      "document_param_name": "placa",
+                      "price_nivel_1": 0.18,
+                      "price_nivel_2": 0.12
+                    },
+                    {
+                      "code": "cenprot_v2",
+                      "name": "CENPROT V2",
+                      "category": "protestos",
+                      "document_type": "both",
+                      "document_param_name": "document",
+                      "price_nivel_1": 0.66,
+                      "price_nivel_2": 0.495
+                    },
+                    {
+                      "code": "ic-cpf-completo",
+                      "name": "IC CPF Completo",
+                      "category": "cadastral",
+                      "document_type": "both",
+                      "document_param_name": "cpf",
+                      "price_nivel_1": 1.21,
+                      "price_nivel_2": 0.66
                     }
-                  }
+                  ]
                 }
               }
             }
-          },
-          "400": {
-            "description": "Bad request - Invalid parameters"
           },
           "401": {
-            "description": "Unauthorized - Invalid or missing authentication"
-          },
-            "429": {
-            "description": "Too many requests - Rate limit exceeded"
+            "$ref": "#/components/responses/Unauthorized"
           },
           "500": {
-            "description": "Internal server error"
+            "$ref": "#/components/responses/InternalError"
           }
         }
-      },
+      }
+    },
+    "/credit/query": {
       "post": {
-        "summary": "Create user",
-        "description": "Create a new user account",
-        "tags": ["Users"],
+        "summary": "Executar consulta de crédito",
+        "description": "Executa uma consulta na integração informada. O custo é debitado automaticamente do saldo do parceiro. O campo document deve conter o CPF, CNPJ, placa ou nome conforme a integração.",
+        "tags": [
+          "Consultas"
+        ],
+        "operationId": "creditQuery",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateUserRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "User created successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/components/schemas/User"
-                    }
+                "$ref": "#/components/schemas/QueryRequest"
+              },
+              "examples": {
+                "cnpj_completo": {
+                  "summary": "CNPJ Completo",
+                  "value": {
+                    "integration_code": "cnpj_completo",
+                    "document": "11222333000181"
+                  }
+                },
+                "cpf_simples": {
+                  "summary": "CPF Simples",
+                  "value": {
+                    "integration_code": "cpf_simples",
+                    "document": "00000000191"
+                  }
+                },
+                "fipe": {
+                  "summary": "Tabela FIPE",
+                  "value": {
+                    "integration_code": "fipe",
+                    "document": "ABC1234"
+                  }
+                },
+                "cenprot_v2": {
+                  "summary": "Protestos CENPROT",
+                  "value": {
+                    "integration_code": "cenprot_v2",
+                    "document": "00000000191"
+                  }
+                },
+                "ic-cpf-completo": {
+                  "summary": "IC CPF Completo",
+                  "value": {
+                    "integration_code": "ic-cpf-completo",
+                    "document": "00000000191"
                   }
                 }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request - Invalid input data"
-          },
-          "409": {
-            "description": "Conflict - User already exists"
-          },
-          "422": {
-            "description": "Validation error"
-          }
-        }
-      }
-    },
-    "/users/{userId}": {
-      "get": {
-        "summary": "Get user by ID",
-        "description": "Retrieve a specific user by their unique identifier",
-        "tags": ["Users"],
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "description": "Unique identifier of the user",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/components/schemas/User"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "User not found"
-          }
-        }
-      },
-      "put": {
-        "summary": "Update user",
-        "description": "Update an existing user's information",
-        "tags": ["Users"],
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "description": "Unique identifier of the user",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateUserRequest"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "User updated successfully",
+            "description": "Consulta executada com sucesso",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/components/schemas/User"
-                    }
-                  }
+                  "$ref": "#/components/schemas/QueryResponse"
                 }
               }
             }
           },
-          "400": {
-            "description": "Bad request - Invalid input data"
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "description": "Saldo insuficiente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "detail": "Saldo insuficiente"
+                }
+              }
+            }
           },
           "404": {
-            "description": "User not found"
+            "description": "Integração não encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "detail": "Integração não encontrada"
+                }
+              }
+            }
           },
           "422": {
-            "description": "Validation error"
-          }
-        }
-      },
-      "delete": {
-        "summary": "Delete user",
-        "description": "Delete a user account",
-        "tags": ["Users"],
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "description": "Unique identifier of the user",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "User deleted successfully"
+            "$ref": "#/components/responses/ValidationError"
           },
-          "404": {
-            "description": "User not found"
-          }
-        }
-      }
-    },
-    "/health": {
-      "get": {
-        "summary": "Health check",
-        "description": "Check the health status of the API",
-        "tags": ["System"],
-        "responses": {
-          "200": {
-            "description": "API is healthy",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "string",
-                      "enum": ["healthy", "degraded"],
-                      "example": "healthy"
-                    },
-                    "timestamp": {
-                      "type": "string",
-                      "format": "date-time",
-                      "example": "2024-01-01T00:00:00Z"
-                    },
-                    "version": {
-                      "type": "string",
-                      "example": "1.0.0"
-                    },
-                    "uptime": {
-                      "type": "integer",
-                      "description": "Uptime in seconds",
-                      "example": 3600
-                    }
-                  }
-                }
-              }
-            }
+          "500": {
+            "$ref": "#/components/responses/InternalError"
           }
         }
       }
@@ -323,215 +215,184 @@
   },
   "components": {
     "securitySchemes": {
-      "BearerAuth": {
-        "type": "http",
-        "scheme": "bearer",
-        "bearerFormat": "JWT",
-        "description": "JWT token obtained from authentication endpoint"
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "HTTP-API-KEY",
+        "description": "Chave de API pré-cadastrada. Exemplo: DEMO-KEY-LINCSAT-2026"
       }
     },
     "schemas": {
-      "User": {
+      "Integration": {
         "type": "object",
         "properties": {
-          "id": {
+          "code": {
             "type": "string",
-            "format": "uuid",
-            "description": "Unique identifier of the user",
-            "example": "550e8400-e29b-41d4-a716-446655440000"
+            "description": "Código único da integração",
+            "example": "cnpj_completo"
           },
           "name": {
             "type": "string",
-            "description": "Full name of the user",
-            "example": "John Doe"
+            "description": "Nome legível da integração",
+            "example": "CNPJ Completo"
           },
-          "email": {
+          "category": {
             "type": "string",
-            "format": "email",
-            "description": "Email address of the user",
-            "example": "john.doe@example.com"
+            "description": "Categoria",
+            "example": "cadastral"
           },
-          "role": {
+          "document_type": {
             "type": "string",
-            "enum": ["admin", "user", "moderator"],
-            "description": "Role of the user",
-            "example": "user"
+            "description": "Tipo de documento aceito (cpf, cnpj, placa, both, name)",
+            "example": "cnpj"
           },
-          "status": {
+          "document_param_name": {
             "type": "string",
-            "enum": ["active", "inactive", "pending"],
-            "description": "Account status",
-            "example": "active"
+            "description": "Nome do parâmetro de documento esperado no body",
+            "example": "cnpj"
           },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Timestamp when the user was created",
-            "example": "2024-01-01T00:00:00Z"
+          "price_nivel_1": {
+            "type": "number",
+            "description": "Preço nível 1 (R$ por consulta)",
+            "example": 0.105
           },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Timestamp when the user was last updated",
-            "example": "2024-01-01T00:00:00Z"
+          "price_nivel_2": {
+            "type": "number",
+            "description": "Preço nível 2 (R$ por consulta, volume)",
+            "example": 0.06
           }
         },
-        "required": ["id", "name", "email", "role", "status", "created_at", "updated_at"]
+        "required": [
+          "code",
+          "name",
+          "category",
+          "document_type",
+          "document_param_name",
+          "price_nivel_1",
+          "price_nivel_2"
+        ]
       },
-      "CreateUserRequest": {
+      "QueryRequest": {
         "type": "object",
         "properties": {
-          "name": {
+          "integration_code": {
             "type": "string",
-            "description": "Full name of the user",
-            "minLength": 2,
-            "maxLength": 100,
-            "example": "John Doe"
+            "description": "Código da integração (obtido em /credit/integrations)",
+            "example": "cnpj_completo"
           },
-          "email": {
+          "document": {
             "type": "string",
-            "format": "email",
-            "description": "Email address of the user",
-            "example": "john.doe@example.com"
-          },
-          "password": {
-            "type": "string",
-            "format": "password",
-            "minLength": 8,
-            "description": "Password for the user account",
-            "example": "SecurePassword123!"
-          },
-          "role": {
-            "type": "string",
-            "enum": ["admin", "user", "moderator"],
-            "description": "Role of the user",
-            "default": "user"
+            "description": "Documento a consultar (CPF, CNPJ, placa ou nome)",
+            "example": "11222333000181"
           }
         },
-        "required": ["name", "email", "password"]
+        "required": [
+          "integration_code",
+          "document"
+        ]
       },
-      "UpdateUserRequest": {
+      "QueryResponse": {
         "type": "object",
         "properties": {
-          "name": {
-            "type": "string",
-            "description": "Full name of the user",
-            "minLength": 2,
-            "maxLength": 100,
-            "example": "John Doe"
-          },
-          "email": {
-            "type": "string",
-            "format": "email",
-            "description": "Email address of the user",
-            "example": "john.doe@example.com"
-          },
-          "role": {
-            "type": "string",
-            "enum": ["admin", "user", "moderator"],
-            "description": "Role of the user"
-          },
           "status": {
             "type": "string",
-            "enum": ["active", "inactive", "pending"],
-            "description": "Account status"
+            "enum": [
+              "success",
+              "error"
+            ],
+            "example": "success"
+          },
+          "data": {
+            "type": "object",
+            "description": "Payload retornado pela integração (estrutura varia por provider)"
+          },
+          "aux": {
+            "type": "array",
+            "description": "Dados auxiliares (ex: PDF em base64)"
+          },
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Mensagem de erro da integração, se houver"
+          },
+          "cost": {
+            "type": "number",
+            "description": "Custo debitado pela consulta (R$)",
+            "example": 0.105
           }
-        }
-      },
-      "Pagination": {
-        "type": "object",
-        "properties": {
-          "page": {
-            "type": "integer",
-            "description": "Current page number",
-            "example": 1
+        },
+        "example": {
+          "status": "success",
+          "data": {
+            "status": "sucesso",
+            "dados": {
+              "cpf": "00000000191",
+              "nome": "RECEITA FEDERAL PARA USO DO SISTEMA",
+              "situacaoRFB": "INVALID DOCUMENT"
+            }
           },
-          "limit": {
-            "type": "integer",
-            "description": "Number of items per page",
-            "example": 20
-          },
-          "total": {
-            "type": "integer",
-            "description": "Total number of items",
-            "example": 100
-          },
-          "total_pages": {
-            "type": "integer",
-            "description": "Total number of pages",
-            "example": 5
-          }
-        }
-      },
-      "Links": {
-        "type": "object",
-        "properties": {
-          "self": {
-            "type": "string",
-            "format": "uri",
-            "description": "Link to current page",
-            "example": "https://api.example.com/v1/users?page=1&limit=20"
-          },
-          "next": {
-            "type": "string",
-            "format": "uri",
-            "description": "Link to next page",
-            "example": "https://api.example.com/v1/users?page=2&limit=20"
-          },
-          "prev": {
-            "type": "string",
-            "format": "uri",
-            "description": "Link to previous page",
-            "example": "https://api.example.com/v1/users?page=1&limit=20"
-          },
-          "first": {
-            "type": "string",
-            "format": "uri",
-            "description": "Link to first page",
-            "example": "https://api.example.com/v1/users?page=1&limit=20"
-          },
-          "last": {
-            "type": "string",
-            "format": "uri",
-            "description": "Link to last page",
-            "example": "https://api.example.com/v1/users?page=5&limit=20"
-          }
+          "aux": [],
+          "error": null,
+          "cost": 0.165
         }
       },
       "Error": {
         "type": "object",
         "properties": {
-          "status": {
-            "type": "integer",
-            "description": "HTTP status code",
-            "example": 400
-          },
-          "code": {
+          "detail": {
             "type": "string",
-            "description": "Error code",
-            "example": "INVALID_INPUT"
-          },
-          "message": {
-            "type": "string",
-            "description": "Human-readable error message",
-            "example": "The provided input is invalid"
-          },
-          "details": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "field": {
-                  "type": "string",
-                  "description": "Field that caused the error",
-                  "example": "email"
-                },
-                "message": {
-                  "type": "string",
-                  "description": "Specific error message for the field",
-                  "example": "Email address is invalid"
+            "description": "Mensagem de erro"
+          }
+        }
+      }
+    },
+    "responses": {
+      "Unauthorized": {
+        "description": "Chave de API ausente ou inválida",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "detail": "Not authenticated"
+            }
+          }
+        }
+      },
+      "ValidationError": {
+        "description": "Payload inválido",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "detail": [
+                {
+                  "loc": [
+                    "body",
+                    "document"
+                  ],
+                  "msg": "field required",
+                  "type": "value_error.missing"
                 }
-              }
+              ]
+            }
+          }
+        }
+      },
+      "InternalError": {
+        "description": "Erro interno",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "detail": "Internal server error"
             }
           }
         }
@@ -540,12 +401,12 @@
   },
   "tags": [
     {
-      "name": "Users",
-      "description": "User management operations"
+      "name": "Integrações",
+      "description": "Catálogo de integrações disponíveis e preços"
     },
     {
-      "name": "System",
-      "description": "System-level operations"
+      "name": "Consultas",
+      "description": "Execução de consultas e débito de saldo"
     }
   ]
 }
