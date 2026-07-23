@@ -1,52 +1,65 @@
 import { resolve } from 'path'
 import { defineConfig } from 'vitepress'
 
-const sharedFooter = {
-  copyright: 'Blue Credit API © 2026 · Conexão Azul Digital'
-}
+const repositoryUrl = 'https://github.com/conexaoazul/blue-credit-api-docs'
 
 export default defineConfig({
   base: '/doc/',
   cleanUrls: true,
-  lastUpdated: false,
-  ignoreDeadLinks: true,
+  lastUpdated: true,
+  ignoreDeadLinks: false,
+
+  // As traduções herdadas do starter ainda descrevem outra API. Elas ficam
+  // fora do build até passarem por revisão técnica e tradução completa.
+  srcExclude: ['en/**', 'es/**', 'fr/**'],
 
   head: [
     ['meta', { name: 'theme-color', content: '#0052cc' }],
     ['meta', { name: 'viewport', content: 'width=device-width, initial-scale=1.0' }],
-    ['link', { rel: 'icon', href: '/favicon.svg' }]
+    ['meta', { name: 'robots', content: 'index,follow' }],
+    ['link', { rel: 'icon', href: '/doc/favicon.svg' }]
   ],
 
   locales: {
     pt: {
       label: 'Português (Brasil)',
-      lang: 'pt',
+      lang: 'pt-BR',
       title: 'Blue Credit API',
-      description: 'Documentação da API REST da Blue Credit API — consultas cadastrais, veiculares, protestos, score e dívidas.',
+      description:
+        'Documentação oficial da Blue Credit API para consultas cadastrais, veiculares, protestos, score e dívidas.',
       link: '/pt/',
       themeConfig: {
-        siteTitle: true,
+        siteTitle: 'Blue Credit API',
         nav: [
-          { text: 'Home', link: '/pt/' },
-          { text: 'Visão Geral', link: '/pt/intro' },
+          { text: 'Início rápido', link: '/pt/inicio-rapido' },
+          { text: 'Integrações e preços', link: '/pt/navegacao-dados' },
           { text: 'API Reference', link: '/pt/api-reference' },
           {
-            text: 'Recursos',
+            text: 'Ajuda',
             items: [
-              { text: 'GitHub', link: 'https://github.com/conexaoazul/blue-credit-api-docs' }
+              { text: 'Perguntas frequentes', link: '/pt/faq' },
+              { text: 'Suporte por e-mail', link: 'mailto:ola@conexaoazul.com' },
+              { text: 'GitHub', link: repositoryUrl }
             ]
           }
         ],
         sidebar: [
           {
-            text: 'Documentação',
+            text: 'Comece aqui',
             items: [
-              { text: '🚀 Visão Geral', link: '/pt/intro' },
-              { text: '🔑 Autenticação e Ambientes', link: '/pt/auth-ambiente' },
-              { text: '📚 Integrações, Categorias e Preços', link: '/pt/navegacao-dados' },
-              { text: '💡 Exemplos de Uso', link: '/pt/exemplos-api-aux' },
-              { text: '⚠️ Respostas & Erros', link: '/pt/respostas-erros' },
-              { text: '🚦 Limites e Boas Práticas', link: '/pt/boas-praticas' },
+              { text: '🚀 Visão geral', link: '/pt/intro' },
+              { text: '⚡ Início rápido', link: '/pt/inicio-rapido' },
+              { text: '🔑 Autenticação e ambientes', link: '/pt/auth-ambiente' }
+            ]
+          },
+          {
+            text: 'Integração',
+            items: [
+              { text: '📚 Integrações e preços', link: '/pt/navegacao-dados' },
+              { text: '💡 Exemplos de uso', link: '/pt/exemplos-api-aux' },
+              { text: '⚠️ Respostas e erros', link: '/pt/respostas-erros' },
+              { text: '🚦 Limites e boas práticas', link: '/pt/boas-praticas' },
+              { text: '❓ Perguntas frequentes', link: '/pt/faq' },
               { text: '🔗 API Reference', link: '/pt/api-reference' }
             ]
           }
@@ -58,16 +71,16 @@ export default defineConfig({
               pt: {
                 translations: {
                   button: {
-                    buttonText: 'Buscar documentos',
-                    buttonAriaLabel: 'Buscar documentos'
+                    buttonText: 'Buscar na documentação',
+                    buttonAriaLabel: 'Buscar na documentação'
                   },
                   modal: {
                     noResultsText: 'Nenhum resultado encontrado',
                     resetButtonTitle: 'Limpar busca',
                     footer: {
-                      selectText: 'para selecionar',
-                      navigateText: 'para navegar',
-                      closeText: 'para fechar'
+                      selectText: 'selecionar',
+                      navigateText: 'navegar',
+                      closeText: 'fechar'
                     }
                   }
                 }
@@ -79,146 +92,26 @@ export default defineConfig({
           level: [2, 3],
           label: 'Nesta página'
         },
-        footer: sharedFooter,
+        footer: {
+          copyright: 'Blue Credit API © 2026 · Conexão Azul Digital'
+        },
         docFooter: {
           prev: 'Página anterior',
           next: 'Próxima página'
         },
-        socialLinks: [
-          { icon: 'github', link: 'https://github.com/conexaoazul/blue-credit-api-docs' }
-        ]
-      }
-    },
-
-    en: {
-      label: 'English',
-      lang: 'en',
-      title: 'Blue Credit API',
-      description: 'REST API documentation for Blue Credit API — registry, vehicle, protest, credit score and debt queries.',
-      link: '/en/',
-      themeConfig: {
-        siteTitle: true,
-        nav: [
-          { text: 'Home', link: '/en/' },
-          { text: 'Overview', link: '/en/intro' },
-          { text: 'API Reference', link: '/en/api-reference' },
-          {
-            text: 'Resources',
-            items: [
-              { text: 'GitHub', link: 'https://github.com/conexaoazul/blue-credit-api-docs' }
-            ]
+        lastUpdated: {
+          text: 'Atualizado em',
+          formatOptions: {
+            dateStyle: 'short',
+            timeStyle: 'short'
           }
-        ],
-        sidebar: [
-          {
-            text: 'Documentation',
-            items: [
-              { text: '🚀 Overview', link: '/en/intro' },
-              { text: '🔑 Authentication and Headers', link: '/en/auth-ambiente' },
-              { text: '📚 Data Navigation', link: '/en/navegacao-dados' },
-              { text: '💡 Examples & Auxiliary APIs', link: '/en/exemplos-api-aux' },
-              { text: '⚠️ Responses & Errors', link: '/en/respostas-erros' },
-              { text: '🚦 Limits and Best Practices', link: '/en/boas-praticas' },
-              { text: '🔗 API Reference', link: '/en/api-reference' }
-            ]
-          }
-        ],
-        outline: {
-          level: [2, 3],
-          label: 'On this page'
         },
-        footer: sharedFooter,
-        docFooter: {
-          prev: 'Previous page',
-          next: 'Next page'
+        editLink: {
+          pattern: `${repositoryUrl}/edit/main/docs/:path`,
+          text: 'Sugerir melhoria nesta página'
         },
-        socialLinks: [
-          { icon: 'github', link: 'https://github.com/conexaoazul/blue-credit-api-docs' }
-        ]
-      }
-    },
-
-    es: {
-      label: 'Español',
-      lang: 'es',
-      title: 'Blue Credit API',
-      description: 'Documentación de la API REST de Blue Credit API.',
-      link: '/es/',
-      themeConfig: {
-        siteTitle: true,
-        nav: [
-          { text: 'Inicio', link: '/es/' },
-          { text: 'Visión General', link: '/es/intro' },
-          { text: 'Referencia API', link: '/es/api-reference' }
-        ],
-        sidebar: [
-          {
-            text: 'Documentación',
-            items: [
-              { text: '🚀 Visión General', link: '/es/intro' },
-              { text: '🔑 Autenticación y Cabeceras', link: '/es/auth-ambiente' },
-              { text: '📚 Navegación de Datos', link: '/es/navegacao-dados' },
-              { text: '💡 Ejemplos & APIs Auxiliares', link: '/es/exemplos-api-aux' },
-              { text: '⚠️ Respuestas & Errores', link: '/es/respostas-erros' },
-              { text: '🚦 Límites y Buenas Prácticas', link: '/es/boas-praticas' },
-              { text: '🔗 Referencia API', link: '/es/api-reference' }
-            ]
-          }
-        ],
-        outline: {
-          level: [2, 3],
-          label: 'En esta página'
-        },
-        footer: sharedFooter,
-        docFooter: {
-          prev: 'Página anterior',
-          next: 'Siguiente página'
-        },
-        socialLinks: [
-          { icon: 'github', link: 'https://github.com/conexaoazul/blue-credit-api-docs' }
-        ]
-      }
-    },
-
-    fr: {
-      label: 'Français',
-      lang: 'fr',
-      title: 'Blue Credit API',
-      description: 'Documentation de l API REST Blue Credit API.',
-      link: '/fr/',
-      themeConfig: {
-        siteTitle: true,
-        nav: [
-          { text: 'Accueil', link: '/fr/' },
-          { text: 'Aperçu', link: '/fr/intro' },
-          { text: 'Référence API', link: '/fr/api-reference' }
-        ],
-        sidebar: [
-          {
-            text: 'Documentation',
-            items: [
-              { text: '🚀 Aperçu', link: '/fr/intro' },
-              { text: '🔑 Authentification et En-têtes', link: '/fr/auth-ambiente' },
-              { text: '📚 Navigation des données', link: '/fr/navegacao-dados' },
-              { text: '💡 Exemples & APIs Auxiliaires', link: '/fr/exemplos-api-aux' },
-              { text: '⚠️ Réponses & Erreurs', link: '/fr/respostas-erros' },
-              { text: '🚦 Limites et bonnes pratiques', link: '/fr/boas-praticas' },
-              { text: '🔗 Référence API', link: '/fr/api-reference' }
-            ]
-          }
-        ],
-        outline: {
-          level: [2, 3],
-          label: 'Sur cette page'
-        },
-        footer: sharedFooter,
-        docFooter: {
-          prev: 'Page précédente',
-          next: 'Page suivante'
-        },
-        socialLinks: [
-          { icon: 'github', link: 'https://github.com/conexaoazul/blue-credit-api-docs' }
-        ]
+        externalLinkIcon: true,
+        socialLinks: [{ icon: 'github', link: repositoryUrl }]
       }
     }
   },
