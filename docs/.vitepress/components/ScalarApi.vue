@@ -13,9 +13,14 @@
 </template>
 
 <script setup lang="ts">
-import { ApiReference } from '@scalar/api-reference'
 import { inBrowser, useData, withBase } from 'vitepress'
-import { computed, onMounted, ref } from 'vue'
+import { computed, defineAsyncComponent, onMounted, ref } from 'vue'
+
+const ApiReference = defineAsyncComponent({
+  loader: () =>
+    import('@scalar/api-reference').then((module) => module.ApiReference),
+  timeout: 15_000
+})
 
 const props = withDefaults(
   defineProps<{
