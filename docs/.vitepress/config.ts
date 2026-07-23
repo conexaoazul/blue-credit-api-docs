@@ -4,7 +4,7 @@ import { defineConfig } from 'vitepress'
 const repositoryUrl = 'https://github.com/conexaoazul/blue-credit-api-docs'
 
 export default defineConfig({
-  base: '/doc/',
+  base: '/',
   cleanUrls: true,
   lastUpdated: true,
   ignoreDeadLinks: false,
@@ -17,7 +17,7 @@ export default defineConfig({
     ['meta', { name: 'theme-color', content: '#0052cc' }],
     ['meta', { name: 'viewport', content: 'width=device-width, initial-scale=1.0' }],
     ['meta', { name: 'robots', content: 'index,follow' }],
-    ['link', { rel: 'icon', href: '/doc/favicon.svg' }]
+    ['link', { rel: 'icon', href: '/favicon.svg' }]
   ],
 
   locales: {

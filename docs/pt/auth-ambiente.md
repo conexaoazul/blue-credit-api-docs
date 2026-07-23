@@ -31,11 +31,12 @@ curl --fail-with-body --silent --show-error \
 
 | Header | Obrigatório | Uso |
 |---|---|---|
-| `HTTP-API-KEY` | Somente em `/credit/query` | Identifica a conta, o nível de preço e o saldo |
+| `HTTP-API-KEY` | Somente em `/credit/query` | Identifica a conta responsável pela consulta e pelo saldo |
 | `Content-Type: application/json` | Em requisições `POST` | Informa que o corpo está em JSON |
 | `Accept: application/json` | Recomendado | Explicita o formato esperado da resposta |
+| `X-Request-ID` | Opcional | Permite enviar um identificador rastreável; a API o devolve quando a requisição chega ao router |
 
-Uma chave ausente ou inválida na consulta retorna `401 Unauthorized`.
+Uma chave ausente ou inválida retorna `401 Unauthorized`. Como a autenticação ocorre antes do router, respostas `401` podem não conter `X-Request-ID`.
 
 ## Ambiente de produção
 
@@ -70,6 +71,6 @@ Seu frontend → Seu backend → Blue Credit API
 
 Seu backend autentica o usuário final, aplica regras de permissão, valida o documento, chama a Blue Credit API e devolve apenas os dados necessários. Isso evita expor a chave e reduz o risco de consultas indevidas.
 
-## Cobrança associada à chave
+## Cobrança associada à conta
 
-A chave identifica a conta responsável pela consulta. Cada chamada aceita em `POST /credit/query` usa o nível de preço configurado para a conta e pode debitar o saldo disponível. Consulte o `cost` da resposta e monitore o consumo no seu sistema.
+A chave identifica a conta responsável pela consulta. O catálogo apresenta as tabelas disponíveis, mas o valor efetivamente debitado depende da configuração comercial ativa e é retornado no campo `cost`. Trate `cost` como a fonte de verdade para conciliação e monitoramento de consumo.

@@ -19,15 +19,11 @@ Não é recomendado. A chave ficaria acessível no navegador ou aplicativo distr
 
 ## Como sei quanto a consulta custará?
 
-Consulte `GET /credit/integrations` e leia `price_nivel_1` e `price_nivel_2`. O valor efetivamente debitado é retornado em `cost`.
+Consulte `GET /credit/integrations` para conhecer as tabelas disponíveis. O valor efetivamente debitado é retornado em `cost` e deve ser tratado como a fonte de verdade para conciliação.
 
-## Como habilito o nível 2?
+## Como habilito condições comerciais diferenciadas?
 
-A conta precisa estar configurada comercialmente com `price_level = nivel_2`. Solicite a habilitação à Conexão Azul.
-
-## Todo item tem desconto no nível 2?
-
-Não presuma isso. Use os valores retornados pelo catálogo e confirme a configuração da conta.
+As condições dependem da configuração comercial ativa da conta e do provedor. Solicite a avaliação à Conexão Azul e não presuma que toda integração terá desconto.
 
 ## Um HTTP 200 sempre traz dados válidos?
 
@@ -35,15 +31,19 @@ Não. Verifique também `status`, `error` e `data`. Uma fonte pode responder sem
 
 ## Uma consulta sem dados pode ser cobrada?
 
-Pode. Quando o provider é acionado, a chamada pode gerar custo mesmo sem retornar o resultado esperado. Confira `cost`.
+Depende do retorno e da política da fonte consultada. Confira o campo `cost`; quando ele vier preenchido, use-o na conciliação.
 
 ## Posso repetir automaticamente uma consulta com erro?
 
-Somente falhas transitórias, como timeout, conexão interrompida ou `500`, devem ser candidatas a retry. Não repita automaticamente `401`, `402`, `404` ou `422`.
+Somente falhas transitórias, como timeout, conexão interrompida, `500` ou `503`, devem ser candidatas a retry. Não repita automaticamente `401`, `402`, `404` ou `422`.
 
 ## Como evito cobrança duplicada?
 
 Bloqueie requisições concorrentes equivalentes, aplique deduplicação no backend e limite retries. A documentação atual não define chave de idempotência.
+
+## Como acompanho uma falha com o suporte?
+
+Guarde o header `X-Request-ID` retornado pela API. Envie esse identificador, o horário e o endpoint ao suporte, sem compartilhar a chave nem o documento completo.
 
 ## A estrutura de `data` é igual em todas as integrações?
 
@@ -63,4 +63,4 @@ Entre em contato por `ola@conexaoazul.com`. Não envie chaves nem documentos pes
 
 ## Onde está o contrato OpenAPI?
 
-Em `https://api.conexaoazul.com/doc/openapi.json` e na página [API Reference](/pt/api-reference).
+Em `https://docs.conexaoazul.com/openapi.json` e na página [API Reference](/pt/api-reference).

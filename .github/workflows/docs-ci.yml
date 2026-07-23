@@ -40,6 +40,7 @@ jobs:
         run: |
           set -euo pipefail
           active_paths=(docs/pt docs/public/openapi.json README.md SECURITY.md)
+          public_paths=(docs/pt docs/public/openapi.json)
 
           if grep -R --line-number --fixed-strings 'DEMO-KEY-LINCSAT' "${active_paths[@]}"; then
             echo 'A demo key literal was found in public documentation.' >&2
@@ -48,6 +49,11 @@ jobs:
 
           if grep -R --line-number -E 'api\.exemplo\.com|X-AGILE-CLIENT|Accept-Version|Authorization: Basic' "${active_paths[@]}"; then
             echo 'Legacy starter documentation was found in active public content.' >&2
+            exit 1
+          fi
+
+          if grep -R --line-number --fixed-strings 'https://api.conexaoazul.com/doc' "${public_paths[@]}"; then
+            echo 'The legacy documentation URL was found in public site content.' >&2
             exit 1
           fi
 
