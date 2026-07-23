@@ -14,8 +14,8 @@ A integração tem dois passos: consultar o catálogo público para descobrir os
 | Recurso | URL |
 |---|---|
 | Base da API | `https://api.conexaoazul.com/api/v1` |
-| Documentação | `https://api.conexaoazul.com/doc/` |
-| OpenAPI 3.0.3 | `https://api.conexaoazul.com/doc/openapi.json` |
+| Documentação | `https://docs.conexaoazul.com/` |
+| OpenAPI 3.0.3 | `https://docs.conexaoazul.com/openapi.json` |
 
 ## Endpoints
 
@@ -30,7 +30,7 @@ A integração tem dois passos: consultar o catálogo público para descobrir os
 2. Escolha o `code` da integração e valide o tipo de documento aceito.
 3. Envie `integration_code` e `document` para `POST /credit/query`.
 4. Verifique primeiro o status HTTP e depois o campo `status` do corpo.
-5. Registre o campo `cost` para conciliar consumo e saldo.
+5. Registre `X-Request-ID` e `cost` para rastrear e conciliar a operação.
 
 ## Primeiro teste
 
@@ -51,6 +51,7 @@ curl --fail-with-body --silent --show-error \
   'https://api.conexaoazul.com/api/v1/credit/query' \
   --header 'Content-Type: application/json' \
   --header "HTTP-API-KEY: ${BLUE_CREDIT_API_KEY}" \
+  --header 'X-Request-ID: primeiro-teste-001' \
   --data '{"integration_code":"cnpj_completo","document":"11222333000181"}'
 ```
 
@@ -64,9 +65,10 @@ O contrato externo da consulta contém:
 
 - `status`: resultado da execução, normalmente `success` ou `error`;
 - `data`: retorno da fonte consultada, cuja estrutura varia por integração;
-- `aux`: dados auxiliares, quando disponíveis;
-- `error`: mensagem do provider, quando houver;
-- `cost`: valor debitado pela chamada.
+- `error`: mensagem da fonte, quando houver;
+- `cost`: valor debitado quando a consulta é concluída com sucesso.
+
+A resposta também inclui o header `X-Request-ID`, que deve ser guardado para rastreamento e suporte.
 
 Um `HTTP 200` pode conter `status: "error"` quando a fonte foi consultada, mas não retornou o resultado esperado. Consulte [Respostas e erros](/pt/respostas-erros) antes de automatizar decisões.
 
