@@ -4,8 +4,8 @@ Documentação pública da **Blue Credit API**, construída com VitePress e Scal
 
 ## URLs públicas
 
-- Documentação: `https://api.conexaoazul.com/doc/`
-- OpenAPI 3.0.3: `https://api.conexaoazul.com/doc/openapi.json`
+- Documentação: `https://docs.conexaoazul.com/`
+- OpenAPI 3.0.3: `https://docs.conexaoazul.com/openapi.json`
 - API: `https://api.conexaoazul.com/api/v1`
 
 ## Contrato atual
@@ -29,7 +29,7 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-O site usa `base: /doc/`. Teste links e recursos dentro desse subpath.
+O site usa `base: /` e deve funcionar diretamente na raiz do domínio `docs.conexaoazul.com`.
 
 ## Validação
 
@@ -46,7 +46,7 @@ Antes de publicar:
 3. não publique API keys, documentos reais ou respostas com dados pessoais;
 4. use exemplos fictícios ou documentos de teste autorizados;
 5. revise preços contra o catálogo ao vivo;
-6. confirme que todos os links funcionam em `/doc/`;
+6. confirme que todos os links funcionam a partir da raiz do domínio;
 7. execute o build local ou aguarde o CI.
 
 ## Organização
@@ -54,7 +54,8 @@ Antes de publicar:
 - `docs/pt/`: conteúdo público revisado em português;
 - `docs/public/openapi.json`: contrato usado pelo Scalar;
 - `docs/.vitepress/config.ts`: navegação, tema e base do deploy;
-- `docs/.vitepress/components/ScalarApi.vue`: referência interativa.
+- `docs/.vitepress/components/ScalarApi.vue`: referência interativa;
+- `CLOUDFLARE_CUTOVER.md`: checklist da migração do domínio.
 
 As traduções herdadas do starter estão excluídas do build até receberem tradução e revisão técnica completas.
 
@@ -64,8 +65,16 @@ O projeto é publicado pelo Cloudflare Pages a cada atualização da branch `mai
 
 - Build command: `pnpm build`
 - Publish directory: `docs/.vitepress/dist`
+- Custom domain: `docs.conexaoazul.com`
 
-O domínio público serve o Pages no subpath `/doc/`.
+O Pages deve responder diretamente pelo domínio de documentação. Não publique o VitePress por uma rota `/doc*` do domínio da API.
+
+Durante a migração, mantenha apenas um redirecionamento permanente de compatibilidade:
+
+```text
+https://api.conexaoazul.com/doc/*
+→ https://docs.conexaoazul.com/*
+```
 
 ## Segurança
 
