@@ -3,7 +3,7 @@
   "info": {
     "title": "Blue Credit API",
     "description": "API REST para consultas cadastrais, veiculares, protestos, score, dívidas e outras fontes. O catálogo de integrações é público; a execução de consultas usa o header HTTP-API-KEY e pode debitar saldo pré-pago.",
-    "version": "19.0.1.0.0",
+    "version": "19.0.1.1.0",
     "contact": {
       "name": "Conexão Azul - Suporte Blue Credit",
       "email": "ola@conexaoazul.com",
@@ -12,7 +12,7 @@
     "license": {
       "name": "Proprietary"
     },
-    "x-last-verified": "2026-07-22"
+    "x-last-verified": "2026-07-23"
   },
   "servers": [
     {
@@ -24,15 +24,23 @@
     "/credit/integrations": {
       "get": {
         "summary": "Listar integrações disponíveis",
-        "description": "Endpoint público e gratuito. Retorna as integrações ativas, tipos de documento e preços atuais.",
+        "description": "Endpoint público e gratuito. Retorna integrações ativas, tipos de documento e tabelas de preço disponíveis.",
         "operationId": "listCreditIntegrations",
-        "tags": [
-          "Integrações"
-        ],
+        "tags": ["Integrações"],
         "security": [],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RequestId"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Catálogo de integrações",
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -50,15 +58,6 @@
                     "document_param_name": "cnpj",
                     "price_nivel_1": 0.105,
                     "price_nivel_2": 0.06
-                  },
-                  {
-                    "code": "cpf_simples",
-                    "name": "CPF Simples",
-                    "category": "cadastral",
-                    "document_type": "cpf",
-                    "document_param_name": "cpf",
-                    "price_nivel_1": 0.165,
-                    "price_nivel_2": 0.09
                   }
                 ]
               }
@@ -73,14 +72,17 @@
     "/credit/query": {
       "post": {
         "summary": "Executar consulta",
-        "description": "Executa a integração informada. A chamada usa a configuração de preço e o saldo associados à chave.",
+        "description": "Executa a integração informada. A chave identifica a conta responsável pela consulta e pelo saldo. O valor efetivamente debitado é retornado em cost.",
         "operationId": "executeCreditQuery",
-        "tags": [
-          "Consultas"
-        ],
+        "tags": ["Consultas"],
         "security": [
           {
             "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RequestId"
           }
         ],
         "requestBody": {
@@ -119,6 +121,11 @@
         "responses": {
           "200": {
             "description": "Consulta processada. Verifique o campo status no corpo.",
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -135,19 +142,17 @@
                           "documento": "11222333000181"
                         }
                       },
-                      "aux": [],
                       "error": null,
                       "cost": 0.105
                     }
                   },
                   "provider_error": {
-                    "summary": "Consulta executada sem resultado no provider",
+                    "summary": "Fonte consultada retornou erro",
                     "value": {
                       "status": "error",
                       "data": null,
-                      "aux": [],
                       "error": "Documento não encontrado na fonte consultada",
-                      "cost": 0.105
+                      "cost": null
                     }
                   }
                 }
@@ -168,6 +173,9 @@
           },
           "500": {
             "$ref": "#/components/responses/InternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
           }
         }
       }
@@ -180,6 +188,29 @@
         "in": "header",
         "name": "HTTP-API-KEY",
         "description": "Chave confidencial associada à conta. Envie somente no endpoint de consulta e nunca exponha no frontend."
+      }
+    },
+    "parameters": {
+      "RequestId": {
+        "name": "X-Request-ID",
+        "in": "header",
+        "required": false,
+        "description": "Identificador opcional para rastreamento. Aceita até 128 caracteres alfanuméricos e os símbolos ponto, sublinhado, dois-pontos e hífen.",
+        "schema": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._:-]{1,128}$"
+        },
+        "example": "pedido-8472-tentativa-1"
+      }
+    },
+    "headers": {
+      "RequestId": {
+        "description": "Identificador da requisição para correlação com logs e suporte.",
+        "schema": {
+          "type": "string"
+        },
+        "example": "pedido-8472-tentativa-1"
       }
     },
     "schemas": {
@@ -225,14 +256,14 @@
             "type": "number",
             "format": "double",
             "minimum": 0,
-            "description": "Preço padrão em reais.",
+            "description": "Tabela de referência de nível 1 em reais.",
             "example": 0.105
           },
           "price_nivel_2": {
             "type": "number",
             "format": "double",
             "minimum": 0,
-            "description": "Preço para contas habilitadas no nível 2, conforme configuração comercial.",
+            "description": "Tabela de referência de nível 2 em reais.",
             "example": 0.06
           }
         }
@@ -240,10 +271,7 @@
       "QueryRequest": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "integration_code",
-          "document"
-        ],
+        "required": ["integration_code", "document"],
         "properties": {
           "integration_code": {
             "type": "string",
@@ -261,21 +289,12 @@
       },
       "QueryResponse": {
         "type": "object",
-        "additionalProperties": true,
-        "required": [
-          "status",
-          "data",
-          "aux",
-          "error",
-          "cost"
-        ],
+        "additionalProperties": false,
+        "required": ["status"],
         "properties": {
           "status": {
             "type": "string",
-            "enum": [
-              "success",
-              "error"
-            ],
+            "enum": ["success", "error"],
             "description": "Resultado da consulta ao provider."
           },
           "data": {
@@ -284,29 +303,23 @@
             "additionalProperties": true,
             "description": "Payload específico da integração."
           },
-          "aux": {
-            "type": "array",
-            "items": {},
-            "description": "Dados auxiliares, quando disponíveis."
-          },
           "error": {
             "type": "string",
             "nullable": true,
-            "description": "Mensagem do provider quando status é error."
+            "description": "Mensagem da fonte quando status é error."
           },
           "cost": {
             "type": "number",
             "format": "double",
             "minimum": 0,
-            "description": "Valor debitado em reais."
+            "nullable": true,
+            "description": "Valor debitado em reais quando a consulta foi concluída com sucesso."
           }
         }
       },
       "ErrorResponse": {
         "type": "object",
-        "required": [
-          "detail"
-        ],
+        "required": ["detail"],
         "properties": {
           "detail": {
             "type": "string"
@@ -315,22 +328,14 @@
       },
       "ValidationIssue": {
         "type": "object",
-        "required": [
-          "loc",
-          "msg",
-          "type"
-        ],
+        "required": ["loc", "msg", "type"],
         "properties": {
           "loc": {
             "type": "array",
             "items": {
               "oneOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "integer"
-                }
+                {"type": "string"},
+                {"type": "integer"}
               ]
             }
           },
@@ -344,9 +349,7 @@
       },
       "ValidationErrorResponse": {
         "type": "object",
-        "required": [
-          "detail"
-        ],
+        "required": ["detail"],
         "properties": {
           "detail": {
             "type": "array",
@@ -373,19 +376,29 @@
       },
       "InsufficientBalance": {
         "description": "Saldo insuficiente.",
+        "headers": {
+          "X-Request-ID": {
+            "$ref": "#/components/headers/RequestId"
+          }
+        },
         "content": {
           "application/json": {
             "schema": {
               "$ref": "#/components/schemas/ErrorResponse"
             },
             "example": {
-              "detail": "Saldo insuficiente"
+              "detail": "Saldo insuficiente: R$ 0.00"
             }
           }
         }
       },
       "IntegrationNotFound": {
         "description": "Código de integração não encontrado.",
+        "headers": {
+          "X-Request-ID": {
+            "$ref": "#/components/headers/RequestId"
+          }
+        },
         "content": {
           "application/json": {
             "schema": {
@@ -407,10 +420,7 @@
             "example": {
               "detail": [
                 {
-                  "loc": [
-                    "body",
-                    "document"
-                  ],
+                  "loc": ["body", "document"],
                   "msg": "field required",
                   "type": "value_error.missing"
                 }
@@ -421,27 +431,40 @@
       },
       "InternalError": {
         "description": "Erro interno ou falha transitória.",
+        "headers": {
+          "X-Request-ID": {
+            "$ref": "#/components/headers/RequestId"
+          }
+        },
         "content": {
           "application/json": {
             "schema": {
               "$ref": "#/components/schemas/ErrorResponse"
             },
             "example": {
-              "detail": "Internal server error"
+              "detail": "Erro interno ao processar a consulta. Informe o X-Request-ID ao suporte."
+            }
+          }
+        }
+      },
+      "ServiceUnavailable": {
+        "description": "Serviço interno temporariamente indisponível ou não configurado.",
+        "headers": {
+          "X-Request-ID": {
+            "$ref": "#/components/headers/RequestId"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "detail": "Nenhum provedor de API configurado"
             }
           }
         }
       }
     }
-  },
-  "tags": [
-    {
-      "name": "Integrações",
-      "description": "Catálogo público de integrações e preços."
-    },
-    {
-      "name": "Consultas",
-      "description": "Execução autenticada de consultas."
-    }
-  ]
+  }
 }
