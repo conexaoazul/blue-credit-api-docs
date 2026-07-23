@@ -1,76 +1,75 @@
 ---
-title: 'Autenticação e Ambientes'
-description: 'Como autenticar na Blue Credit API usando HTTP-API-KEY e quais ambientes estão disponíveis.'
+title: Autenticação e ambientes
+description: Como proteger e enviar a HTTP-API-KEY na Blue Credit API.
 ---
 
-## 🔑 Autenticação
+# Autenticação e ambientes
 
-A Blue Credit API usa um **único header** para autenticar todas as requisições — não há OAuth, Basic Auth ou fluxo de login:
+## Endpoint público
 
-<ApiCard
-  title="request.headers"
-  :items="[
-    {
-      key: 'HTTP-API-KEY',
-      description: 'Sua chave de API. Enviada em todas as requisições, inclusive no <code>GET /credit/integrations</code>.',
-      color: 'blue'
-    },
-    {
-      key: 'Content-Type',
-      description: '<code>application/json</code> — obrigatório em requisições <code>POST</code>.',
-      color: 'purple'
-    }
-  ]"
-/>
-
-::: warning Chave inválida ou ausente
-Requisições sem `HTTP-API-KEY` ou com uma chave inválida retornam **401 Unauthorized** com `{"detail": "Not authenticated"}`.
-:::
-
-### Exemplo
+`GET /credit/integrations` é público, gratuito e não exige `HTTP-API-KEY`. Use-o para descobrir integrações ativas, formatos de documento e preços atuais.
 
 ```bash
-curl -X POST https://api.conexaoazul.com/api/v1/credit/query \
-  -H "HTTP-API-KEY: SUA_CHAVE" \
-  -H "Content-Type: application/json" \
-  -d '{"integration_code":"cnpj_completo","document":"11222333000181"}'
+curl --fail-with-body --silent --show-error \
+  https://api.conexaoazul.com/api/v1/credit/integrations
 ```
 
-::: tip Chave de demonstração
-Solicite uma chave de homologação em `ola@conexaoazul.com` para testar sem afetar o saldo de produção. Não reutilize a mesma chave de homologação entre parceiros diferentes.
-:::
+## Consulta autenticada
 
-## 🌍 Ambientes
+`POST /credit/query` exige a chave no header `HTTP-API-KEY` e um corpo JSON.
 
-<ApiCard
-  title="Servidores"
-  :items="[
-    {
-      key: 'Produção',
-      description: '<code>https://api.conexaoazul.com/api/v1</code> — consultas reais, debitam saldo do parceiro.',
-      color: 'green'
-    },
-    {
-      key: 'Homologação',
-      description: '<code>https://api-hml.conexaoazul.com/api/v1</code> — mesmo contrato de API, para testar integrações antes de ir para produção.',
-      color: 'blue'
-    }
-  ]"
-/>
+```bash
+export BLUE_CREDIT_API_KEY='SUA_CHAVE'
 
-Não existe versionamento por header (`Accept-Version`) nem `environmentId` na URL — a versão atual da API é a única disponível, e o ambiente é escolhido pela URL base (produção ou homologação).
+curl --fail-with-body --silent --show-error \
+  --request POST \
+  'https://api.conexaoazul.com/api/v1/credit/query' \
+  --header 'Content-Type: application/json' \
+  --header "HTTP-API-KEY: ${BLUE_CREDIT_API_KEY}" \
+  --data '{"integration_code":"cnpj_completo","document":"11222333000181"}'
+```
 
-## 💳 Como sua chave é cobrada
+| Header | Obrigatório | Uso |
+|---|---|---|
+| `HTTP-API-KEY` | Somente em `/credit/query` | Identifica a conta, o nível de preço e o saldo |
+| `Content-Type: application/json` | Em requisições `POST` | Informa que o corpo está em JSON |
+| `Accept: application/json` | Recomendado | Explicita o formato esperado da resposta |
 
-Cada chave está associada a um saldo pré-pago do parceiro. Toda chamada a `POST /credit/query` debita automaticamente o valor da integração usada (campo `cost` na resposta). Se o saldo for insuficiente, a API retorna **402 Payment Required**.
+Uma chave ausente ou inválida na consulta retorna `401 Unauthorized`.
 
-Para detalhes sobre preços e níveis de desconto por volume, veja [Integrações, Categorias e Preços](/pt/navegacao-dados).
+## Ambiente de produção
 
-## 🔐 Segurança
+```text
+https://api.conexaoazul.com/api/v1
+```
 
-::: warning Atenção
-- Nunca commite sua `HTTP-API-KEY` em repositórios de código.
-- Armazene a chave em variáveis de ambiente ou em um cofre de segredos.
-- Use a chave de homologação (`api-hml`) para testes automatizados e CI, e reserve a chave de produção para tráfego real.
-- Se suspeitar que uma chave vazou, solicite a revogação e emissão de uma nova em `ola@conexaoazul.com`.
-:::
+As consultas nesse endereço podem debitar saldo real. Ambientes ou chaves de homologação dependem de habilitação. Confirme a disponibilidade com `ola@conexaoazul.com` antes de incluí-los em CI/CD ou testes automatizados.
+
+## Armazenamento seguro
+
+- Guarde a chave em variáveis de ambiente, secret managers ou cofres de credenciais.
+- Nunca coloque a chave em frontend, repositório, imagem Docker, log, ticket ou print.
+- Use chaves separadas por cliente e ambiente quando essa opção estiver disponível.
+- Restrinja quem pode visualizar, rotacionar e utilizar a chave.
+- Em caso de suspeita de vazamento, interrompa o uso e solicite revogação e substituição.
+
+### Exemplo de `.env`
+
+```dotenv
+BLUE_CREDIT_API_URL=https://api.conexaoazul.com/api/v1
+BLUE_CREDIT_API_KEY=SUA_CHAVE
+```
+
+Inclua `.env` no `.gitignore` e forneça apenas um `.env.example` sem valores reais.
+
+## Arquitetura recomendada
+
+```text
+Seu frontend → Seu backend → Blue Credit API
+```
+
+Seu backend autentica o usuário final, aplica regras de permissão, valida o documento, chama a Blue Credit API e devolve apenas os dados necessários. Isso evita expor a chave e reduz o risco de consultas indevidas.
+
+## Cobrança associada à chave
+
+A chave identifica a conta responsável pela consulta. Cada chamada aceita em `POST /credit/query` usa o nível de preço configurado para a conta e pode debitar o saldo disponível. Consulte o `cost` da resposta e monitore o consumo no seu sistema.
