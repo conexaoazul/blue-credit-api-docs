@@ -1,78 +1,83 @@
 ---
-title: Visão Geral
-description: Documentação da Blue Credit API — consultas cadastrais, veiculares, protestos, score e dívidas.
+title: Visão geral
+description: Entenda o modelo de uso, autenticação, cobrança e respostas da Blue Credit API.
 ---
 
-# 🚀 Blue Credit API
+# Blue Credit API
 
-A **Blue Credit API** é uma API REST hospedada no Odoo 19 da Conexão Azul que permite consultar dezenas de bases de dados (cadastrais, veiculares, protestos, score, dívidas etc.) com pré-pagamento por consulta.
+A **Blue Credit API** permite integrar consultas cadastrais, veiculares, de protestos, score, dívidas e outras fontes de dados em sistemas próprios.
 
-Cada requisição debita automaticamente o saldo do parceiro conforme o preço da integração escolhida.
+A integração tem dois passos: consultar o catálogo público para descobrir os códigos e preços atuais e, depois, executar a consulta autenticada com saldo pré-pago.
 
----
+## Endereços oficiais
 
-## URL Base
-
-```bash
-https://api.conexaoazul.com/api/v1
-```
-
-## Autenticação
-
-Todas as requisições exigem o header `HTTP-API-KEY`:
-
-```bash
-curl -X POST https://api.conexaoazul.com/api/v1/credit/query \
-  -H "HTTP-API-KEY: DEMO-KEY-LINCSAT-2026" \
-  -H "Content-Type: application/json" \
-  -d '{"integration_code":"cnpj_completo","document":"11222333000181"}'
-```
-
-::: tip Demo key
-A chave `DEMO-KEY-LINCSAT-2026` é válida apenas para testes e tem saldo limitado. Solicite sua chave de produção em `ola@conexaoazul.com`.
-:::
+| Recurso | URL |
+|---|---|
+| Base da API | `https://api.conexaoazul.com/api/v1` |
+| Documentação | `https://api.conexaoazul.com/doc/` |
+| OpenAPI 3.0.3 | `https://api.conexaoazul.com/doc/openapi.json` |
 
 ## Endpoints
 
-| Método | Endpoint | Descrição |
-|---|---|---|
-| GET | `/credit/integrations` | Lista todas as integrações disponíveis, preços e tipo de documento |
-| POST | `/credit/query` | Executa uma consulta e retorna os dados do provider + custo |
+| Método | Endpoint | Finalidade | Autenticação | Cobrança |
+|---|---|---|---|---|
+| `GET` | `/credit/integrations` | Lista integrações ativas, documentos aceitos e preços | Não exige chave | Gratuito |
+| `POST` | `/credit/query` | Executa uma consulta | `HTTP-API-KEY` | Debita o preço aplicável |
 
-## Integrações mais econômicas
+## Fluxo recomendado
 
-A API tem 35 integrações ativas, cobrindo dados cadastrais, veiculares, protestos, dívidas/crédito, score e jurídico. As 5 mais baratas:
+1. Consulte `GET /credit/integrations` e armazene temporariamente o catálogo.
+2. Escolha o `code` da integração e valide o tipo de documento aceito.
+3. Envie `integration_code` e `document` para `POST /credit/query`.
+4. Verifique primeiro o status HTTP e depois o campo `status` do corpo.
+5. Registre o campo `cost` para conciliar consumo e saldo.
 
-| Código | Nome | Tipo de documento | Preço N1 |
-|---|---|---|---|
-| `cnpj_completo` | CNPJ Completo | `cnpj` | R$ 0,105 |
-| `cpf_simples` | CPF Simples | `cpf` | R$ 0,165 |
-| `fipe` | Tabela FIPE | `placa` | R$ 0,18 |
-| `cenprot_v2` | CENPROT V2 | `both` | R$ 0,66 |
-| `ic-cpf-completo` | IC CPF Completo | `both` | R$ 1,21 |
+## Primeiro teste
 
-Veja o catálogo completo agrupado por categoria, com todos os preços, em [Integrações, Categorias e Preços](/pt/navegacao-dados). Os schemas interativos (request/response) estão em [API Reference](/pt/api-reference).
+Liste o catálogo público:
 
-## Fluxo típico
+```bash
+curl --fail-with-body --silent --show-error \
+  https://api.conexaoazul.com/api/v1/credit/integrations
+```
 
-1. **Liste integrações**: `GET /credit/integrations`
-2. **Escolha o código** e monte o payload `{integration_code, document}`
-3. **Execute a consulta**: `POST /credit/query`
-4. **Leia o response**:
-   - `status`: `success` ou `error`
-   - `data`: payload retornado pelo provider (estrutura varia)
-   - `cost`: custo debitado em R$
-   - `error`: mensagem de erro da integração, se houver
+Execute uma consulta usando a chave em variável de ambiente:
+
+```bash
+export BLUE_CREDIT_API_KEY='SUA_CHAVE'
+
+curl --fail-with-body --silent --show-error \
+  --request POST \
+  'https://api.conexaoazul.com/api/v1/credit/query' \
+  --header 'Content-Type: application/json' \
+  --header "HTTP-API-KEY: ${BLUE_CREDIT_API_KEY}" \
+  --data '{"integration_code":"cnpj_completo","document":"11222333000181"}'
+```
+
+::: danger Não use a chave diretamente no navegador
+O endpoint de consulta deve ser chamado pelo seu backend. Uma chave colocada em JavaScript, aplicativo distribuído, extensão ou página web pode ser extraída e usada por terceiros.
+:::
+
+## Como interpretar a resposta
+
+O contrato externo da consulta contém:
+
+- `status`: resultado da execução, normalmente `success` ou `error`;
+- `data`: retorno da fonte consultada, cuja estrutura varia por integração;
+- `aux`: dados auxiliares, quando disponíveis;
+- `error`: mensagem do provider, quando houver;
+- `cost`: valor debitado pela chamada.
+
+Um `HTTP 200` pode conter `status: "error"` quando a fonte foi consultada, mas não retornou o resultado esperado. Consulte [Respostas e erros](/pt/respostas-erros) antes de automatizar decisões.
 
 ## Próximos passos
 
-- [Autenticação e Ambientes](/pt/auth-ambiente) — header `HTTP-API-KEY`, ambientes de produção/homologação
-- [Integrações, Categorias e Preços](/pt/navegacao-dados) — catálogo completo das 35 integrações e níveis de preço
-- [Exemplos de Uso](/pt/exemplos-api-aux) — cURL, JavaScript, Python e PHP
-- [Respostas & Erros](/pt/respostas-erros) — códigos HTTP e formato de erro
-- [Limites e boas práticas](/pt/boas-praticas) — cobrança e recomendações de uso
-- [API Reference](/pt/api-reference) — schemas interativos (Scalar)
+- [Início rápido](/pt/inicio-rapido)
+- [Autenticação e ambientes](/pt/auth-ambiente)
+- [Integrações e preços](/pt/navegacao-dados)
+- [Exemplos de uso](/pt/exemplos-api-aux)
+- [API Reference](/pt/api-reference)
 
 ## Suporte
 
-Dúvidas ou solicitação de chave de produção: `ola@conexaoazul.com`
+Para solicitar chave, saldo, habilitação comercial ou ajuda técnica, escreva para `ola@conexaoazul.com` sem incluir chaves ou dados pessoais completos na mensagem.
