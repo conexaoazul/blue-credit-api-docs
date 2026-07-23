@@ -34,9 +34,9 @@ curl --fail-with-body --silent --show-error \
 | `HTTP-API-KEY` | Somente em `/credit/query` | Identifica a conta responsável pela consulta e pelo saldo |
 | `Content-Type: application/json` | Em requisições `POST` | Informa que o corpo está em JSON |
 | `Accept: application/json` | Recomendado | Explicita o formato esperado da resposta |
-| `X-Request-ID` | Opcional | Permite enviar um identificador rastreável; a API também retorna esse header |
+| `X-Request-ID` | Opcional | Permite enviar um identificador rastreável; a API o devolve quando a requisição chega ao router |
 
-Uma chave ausente ou inválida na consulta retorna `401 Unauthorized`.
+Uma chave ausente ou inválida retorna `401 Unauthorized`. Como a autenticação ocorre antes do router, respostas `401` podem não conter `X-Request-ID`.
 
 ## Ambiente de produção
 
