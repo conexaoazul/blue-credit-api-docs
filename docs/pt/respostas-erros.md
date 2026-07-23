@@ -36,13 +36,15 @@ Uma fonte pode responder com `status: "error"`, `data: null` ou uma mensagem em 
 
 ## Identificador de requisição
 
-As respostas processadas pela API retornam o header `X-Request-ID`. Você também pode enviar um valor próprio, com até 128 caracteres alfanuméricos e os símbolos `.`, `_`, `:` ou `-`.
+As respostas que chegam ao router da Blue Credit API retornam o header `X-Request-ID`. Você também pode enviar um valor próprio, com até 128 caracteres alfanuméricos e os símbolos `.`, `_`, `:` ou `-`.
 
 ```bash
 --header 'X-Request-ID: pedido-8472-tentativa-1'
 ```
 
-Guarde esse identificador junto ao status HTTP e ao horário da chamada. Em erros internos, informe o `X-Request-ID` ao suporte em vez de enviar a chave ou o documento completo.
+Erros de autenticação `401` e validação `422` podem ocorrer antes da execução do router. Nesses casos, o header pode não estar presente. Guarde o identificador quando ele for retornado e registre também status HTTP, horário e `integration_code`.
+
+Em erros internos, informe o `X-Request-ID` ao suporte em vez de enviar a chave ou o documento completo.
 
 ## Códigos HTTP documentados
 
@@ -53,8 +55,8 @@ Guarde esse identificador junto ao status HTTP e ao horário da chamada. Em erro
 | `402` | Saldo insuficiente | Não |
 | `404` | Integração não encontrada | Não |
 | `422` | Payload inválido | Não |
-| `500` | Erro interno ou falha transitória | Sim, com limite e backoff |
-| `503` | Provedor interno não configurado ou indisponível | Sim, com limite e backoff |
+| `500` | Erro interno ou falha transitória | Somente com limite e análise de duplicidade |
+| `503` | Serviço interno não configurado ou temporariamente indisponível | Sim, com limite e backoff |
 
 ### Formato comum
 
@@ -117,7 +119,7 @@ try {
   }
 
   if (payload.status !== 'success') {
-    console.warn('Consulta concluída sem sucesso no provider', {
+    console.warn('Consulta concluída sem sucesso na fonte', {
       requestId: responseRequestId,
       error: payload.error,
       cost: payload.cost
@@ -135,10 +137,12 @@ try {
 
 ## Estratégia de retry
 
-Repita apenas falhas transitórias, como `500`, `503`, timeout ou erro de conexão. Use poucas tentativas, espera exponencial e jitter. Antes de repetir uma consulta paga, avalie o risco de a primeira chamada ter sido processada e a resposta ter se perdido.
+Repita apenas falhas transitórias, como `500`, `503`, timeout ou erro de conexão. Use poucas tentativas, espera exponencial e jitter.
+
+Antes de repetir uma consulta paga, avalie se a chamada anterior pode ter alcançado a fonte e perdido apenas a resposta. Reutilize o mesmo identificador lógico da operação no seu sistema e bloqueie requisições concorrentes equivalentes.
 
 Não repita automaticamente `401`, `402`, `404` ou `422`: a mesma requisição continuará inválida até que chave, saldo, código ou payload sejam corrigidos.
 
 ## O que registrar
 
-Registre `X-Request-ID`, status HTTP, `integration_code`, duração, `status` e `cost`. Não registre a chave nem o documento completo. Para diagnóstico, use documento mascarado, por exemplo `***0001-81`.
+Registre `X-Request-ID` quando disponível, status HTTP, `integration_code`, duração, `status` e `cost`. Não registre a chave nem o documento completo. Para diagnóstico, use documento mascarado, por exemplo `***0001-81`.
