@@ -11,7 +11,7 @@ O catálogo oficial é retornado em tempo real por:
 GET https://api.conexaoazul.com/api/v1/credit/integrations
 ```
 
-Esse endpoint é público, gratuito e deve ser considerado a **fonte de verdade** para integrações ativas e preços. Evite manter uma cópia permanente dos valores em código, proposta ou banco de dados sem uma rotina de atualização.
+Esse endpoint é público, gratuito e deve ser considerado a **fonte de verdade** para integrações ativas e tabelas de referência. Evite manter uma cópia permanente dos valores em código, proposta ou banco de dados sem uma rotina de atualização.
 
 ## Consultar o catálogo
 
@@ -30,8 +30,8 @@ curl --fail-with-body --silent --show-error \
 | `category` | Categoria funcional da integração |
 | `document_type` | Tipo aceito, como `cpf`, `cnpj`, `placa`, `both` ou outro informado no catálogo |
 | `document_param_name` | Nome semântico usado pela integração; no endpoint unificado, envie o valor em `document` |
-| `price_nivel_1` | Preço padrão por consulta |
-| `price_nivel_2` | Preço aplicado a contas habilitadas no nível 2, conforme configuração comercial |
+| `price_nivel_1` | Tabela de referência de nível 1 |
+| `price_nivel_2` | Tabela de referência de nível 2 |
 
 ## Integrações econômicas validadas
 
@@ -49,14 +49,13 @@ Em 22 de julho de 2026, o catálogo de produção retornava 35 integrações ati
 A tabela acima é apenas uma referência histórica. Consulte o endpoint antes de exibir preço ao usuário, calcular margem ou executar uma consulta.
 :::
 
-## Nível 1 e nível 2
+## Tabelas e valor efetivamente debitado
 
-- **Nível 1:** preço padrão da conta.
-- **Nível 2:** preço definido para contas habilitadas comercialmente.
+Os campos `price_nivel_1` e `price_nivel_2` apresentam as tabelas disponíveis no catálogo. A condição comercial ativa depende da configuração operacional da conta e do provedor.
 
-A conta precisa estar configurada com `price_level = nivel_2` para usar o segundo valor. Essa configuração é feita pela Conexão Azul e não altera o payload da integração.
+Não escolha localmente qual tabela será cobrada. Depois da consulta, use o campo `cost` da resposta como fonte de verdade para conciliação, margem e monitoramento.
 
-Não presuma que `price_nivel_2` está disponível ou é menor em todos os itens. Use o preço efetivamente retornado e confirmado para sua conta.
+Não presuma que `price_nivel_2` está disponível ou é menor em todos os itens. Confirme condições de volume com a Conexão Azul antes de prometer valores ao usuário final.
 
 ## Filtrar e ordenar em JavaScript
 
@@ -89,6 +88,7 @@ O catálogo pode ser cacheado no seu backend por um período curto, por exemplo 
 - Não envie um CPF para integração que exige placa ou CNPJ.
 - Não fixe o preço da consulta na interface sem data de atualização.
 - Não interprete `document_param_name` como um campo adicional do body. O endpoint unificado recebe `document`.
-- Não prometa nível 2 antes da habilitação da conta.
+- Não selecione localmente o nível de preço como se fosse uma opção do request.
+- Não prometa condições de volume antes da confirmação comercial.
 
-Para contratar volume, habilitar nível 2 ou confirmar uma integração específica, contate `ola@conexaoazul.com`.
+Para contratar volume ou confirmar uma integração específica, contate `ola@conexaoazul.com`.
