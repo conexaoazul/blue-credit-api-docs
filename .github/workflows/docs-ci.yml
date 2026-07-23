@@ -1,0 +1,55 @@
+name: Docs CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8.15.5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate OpenAPI JSON
+        run: node -e "JSON.parse(require('fs').readFileSync('docs/public/openapi.json', 'utf8'))"
+
+      - name: Reject leaked or legacy documentation values
+        shell: bash
+        run: |
+          set -euo pipefail
+          active_paths=(docs/pt docs/public/openapi.json README.md SECURITY.md)
+
+          if grep -R --line-number --fixed-strings 'DEMO-KEY-LINCSAT' "${active_paths[@]}"; then
+            echo 'A demo key literal was found in public documentation.' >&2
+            exit 1
+          fi
+
+          if grep -R --line-number -E 'api\.exemplo\.com|X-AGILE-CLIENT|Accept-Version|Authorization: Basic' "${active_paths[@]}"; then
+            echo 'Legacy starter documentation was found in active public content.' >&2
+            exit 1
+          fi
+
+      - name: Build VitePress
+        run: pnpm build
