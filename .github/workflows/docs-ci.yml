@@ -51,5 +51,10 @@ jobs:
             exit 1
           fi
 
+          if grep -R --line-number --fixed-strings 'https://api.conexaoazul.com/doc' "${active_paths[@]}"; then
+            echo 'The legacy documentation URL was found in active public content.' >&2
+            exit 1
+          fi
+
       - name: Build VitePress
         run: pnpm build
