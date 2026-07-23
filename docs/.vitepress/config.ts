@@ -42,6 +42,11 @@ export default defineConfig({
             text: 'Documentação',
             items: [
               { text: '🚀 Visão Geral', link: '/pt/intro' },
+              { text: '🔑 Autenticação e Ambientes', link: '/pt/auth-ambiente' },
+              { text: '📚 Integrações, Categorias e Preços', link: '/pt/navegacao-dados' },
+              { text: '💡 Exemplos de Uso', link: '/pt/exemplos-api-aux' },
+              { text: '⚠️ Respostas & Erros', link: '/pt/respostas-erros' },
+              { text: '🚦 Limites e Boas Práticas', link: '/pt/boas-praticas' },
               { text: '🔗 API Reference', link: '/pt/api-reference' }
             ]
           }
@@ -109,6 +114,11 @@ export default defineConfig({
             text: 'Documentation',
             items: [
               { text: '🚀 Overview', link: '/en/intro' },
+              { text: '🔑 Authentication and Headers', link: '/en/auth-ambiente' },
+              { text: '📚 Data Navigation', link: '/en/navegacao-dados' },
+              { text: '💡 Examples & Auxiliary APIs', link: '/en/exemplos-api-aux' },
+              { text: '⚠️ Responses & Errors', link: '/en/respostas-erros' },
+              { text: '🚦 Limits and Best Practices', link: '/en/boas-praticas' },
               { text: '🔗 API Reference', link: '/en/api-reference' }
             ]
           }
@@ -146,6 +156,11 @@ export default defineConfig({
             text: 'Documentación',
             items: [
               { text: '🚀 Visión General', link: '/es/intro' },
+              { text: '🔑 Autenticación y Cabeceras', link: '/es/auth-ambiente' },
+              { text: '📚 Navegación de Datos', link: '/es/navegacao-dados' },
+              { text: '💡 Ejemplos & APIs Auxiliares', link: '/es/exemplos-api-aux' },
+              { text: '⚠️ Respuestas & Errores', link: '/es/respostas-erros' },
+              { text: '🚦 Límites y Buenas Prácticas', link: '/es/boas-praticas' },
               { text: '🔗 Referencia API', link: '/es/api-reference' }
             ]
           }
@@ -183,6 +198,11 @@ export default defineConfig({
             text: 'Documentation',
             items: [
               { text: '🚀 Aperçu', link: '/fr/intro' },
+              { text: '🔑 Authentification et En-têtes', link: '/fr/auth-ambiente' },
+              { text: '📚 Navigation des données', link: '/fr/navegacao-dados' },
+              { text: '💡 Exemples & APIs Auxiliaires', link: '/fr/exemplos-api-aux' },
+              { text: '⚠️ Réponses & Erreurs', link: '/fr/respostas-erros' },
+              { text: '🚦 Limites et bonnes pratiques', link: '/fr/boas-praticas' },
               { text: '🔗 Référence API', link: '/fr/api-reference' }
             ]
           }
